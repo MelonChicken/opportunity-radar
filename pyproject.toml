@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "research-radar"
+version = "0.1.0"
+description = "A PwC report analysis dashboard using RSS, LLM, and Streamlit."
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+streamlit = "^1.30.0"
+pandas = "^2.2.0"
+feedparser = "^6.0.11"
+beautifulsoup4 = "^4.12.3"
+requests = "^2.31.0"
+openai = "^1.10.0"
+pydantic = "^2.6.0"
+python-dotenv = "^1.0.1"
+pypdf = "^4.0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
