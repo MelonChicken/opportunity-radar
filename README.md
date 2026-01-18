@@ -21,6 +21,12 @@ Research Radar automatically monitors global research reports (e.g., PwC), uses 
 
 ## 🛠️ Tech Stack
 
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white)
+![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=white)
+![Pandas](https://img.shields.io/badge/Pandas-150458?logo=pandas&logoColor=white)
+![Pydantic](https://img.shields.io/badge/Pydantic-E92063?logo=pydantic&logoColor=white)
+
 - **Frontend**: Streamlit (Python)
 - **AI Core**: OpenAI GPT-3.5 Turbo (JSON Mode)
 - **Data Engineering**: Feedparser, BeautifulSoup4, PyPDF
