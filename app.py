@@ -14,20 +14,25 @@ from src.models import OpportunityCard
 @st.dialog("Signal Details / 상세 내용")
 def show_details_dialog(row, is_ko, T):
     # Language Fallback
-    title = row['problem_summary_ko'] if is_ko and row.get('problem_summary_ko') else row['problem_summary']
-    evidence = row['evidence_sentence_ko'] if is_ko and row.get('evidence_sentence_ko') else row['evidence_sentence']
-    expected_val = row['expected_value_ko'] if is_ko and row.get('expected_value_ko') else row['expected_value']
+    attack = row.get('attack_vector_ko') if is_ko and row.get('attack_vector_ko') else row.get('attack_vector')
+    holder = row.get('pain_holder_ko') if is_ko and row.get('pain_holder_ko') else row.get('pain_holder')
+    context = row.get('pain_context_ko') if is_ko and row.get('pain_context_ko') else row.get('pain_context')
+    mechanism = row.get('pain_mechanism_ko') if is_ko and row.get('pain_mechanism_ko') else row.get('pain_mechanism')
+    evidence = row.get('evidence_sentence_ko') if is_ko and row.get('evidence_sentence_ko') else row.get('evidence_sentence')
     
-    st.subheader(title)
+    st.subheader(attack)
     st.caption(f"Score: {row['importance_score']} | Confidence: {int(row.get('confidence_score', 0)*100)}%")
     
     st.markdown("---")
     
+    st.markdown(f"**{'Target Customer (Who)' if not is_ko else '타겟 고객 (Who)'}**")
+    st.write(f"**{holder}** in *{context}*")
+
+    st.markdown(f"**{'Pain Point (Why)' if not is_ko else '페인 포인트 (Why)'}**")
+    st.write(mechanism)
+    
     st.markdown(f"**{'Evidence' if not is_ko else '근거 문장'}**")
     st.info(f"{evidence}")
-    
-    st.markdown(f"**{'Expected Value' if not is_ko else '기대 효과'}**")
-    st.write(expected_val)
     
     st.markdown("---")
     st.markdown(f"**Report ID:** {row['report_id']}")
@@ -108,8 +113,6 @@ if st.sidebar.button("Run Ingestion Pipeline 🚀"):
             st.rerun()
         except Exception as e:
             status.update(label="Pipeline Failed", state="error")
-            st.sidebar.error(f"Error: {e}")
-
             st.sidebar.error(f"Error: {e}")
 
 # --- Language Settings ---
@@ -230,12 +233,11 @@ else:
         # Display Cards
         for index, row in page_df.iterrows():
             # Language Fallback Logic
-            title = row['problem_summary_ko'] if is_ko and row.get('problem_summary_ko') else row['problem_summary']
-            evidence = row['evidence_sentence_ko'] if is_ko and row.get('evidence_sentence_ko') else row['evidence_sentence']
-            expected_val = row['expected_value_ko'] if is_ko and row.get('expected_value_ko') else row['expected_value']
+            attack = row.get('attack_vector_ko') if is_ko and row.get('attack_vector_ko') else row.get('attack_vector')
+            holder = row.get('pain_holder_ko') if is_ko and row.get('pain_holder_ko') else row.get('pain_holder')
+            evidence = row.get('evidence_sentence_ko') if is_ko and row.get('evidence_sentence_ko') else row.get('evidence_sentence')
             
             # HTML Construction
-            expected_label = 'Expected Value' if not is_ko else '기대 효과'
             ind_tags = ' '.join([f'<span class="tag">{tag}</span>' for tag in row.get('industry_tags', [])])
             tech_tags = ' '.join([f'<span class="tag" style="background-color:#4a2b2b;">{tag}</span>' for tag in row.get('technology_tags', [])])
             
@@ -243,16 +245,16 @@ else:
             card_html = textwrap.dedent(f"""
                 <div class="signal-card">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3 style="margin:0;">{title}</h3>
+                        <h3 style="margin:0;">{attack}</h3>
                         <span class="score-badge">{row['importance_score']}</span>
                     </div>
-                    <p style="color:#bbb; font-style:italic;">"{evidence}"</p>
+                    <div style="margin-top:8px; color:#ddd;">
+                        <strong>{'For' if not is_ko else '대상'}:</strong> {holder}
+                    </div>
+                    <p style="color:#bbb; font-style:italic; margin-top:8px;">"{evidence}"</p>
                     <div style="margin-top:10px;">
                         {ind_tags}
                         {tech_tags}
-                    </div>
-                    <div style="margin-top:16px; font-size:0.9em; border-top:1px solid #333; padding-top:10px;">
-                            <strong>{expected_label}:</strong> {expected_val} <br/>
                     </div>
                 </div>
             """)
