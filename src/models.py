@@ -23,14 +23,18 @@ class Report(BaseModel):
 
 class OpportunityCard(BaseModel):
     card_id: str
-    problem_summary: str
-    problem_summary_ko: Optional[str] = None
+    pain_holder: str
+    pain_holder_ko: Optional[str] = None
+    pain_context: str
+    pain_context_ko: Optional[str] = None
+    pain_mechanism: str
+    pain_mechanism_ko: Optional[str] = None
+    attack_vector: str
+    attack_vector_ko: Optional[str] = None
     evidence_sentence: str
     evidence_sentence_ko: Optional[str] = None
     industry_tags: List[str]
     technology_tags: List[str]
-    expected_value: str
-    expected_value_ko: Optional[str] = None
     importance_score: int
     confidence_score: float
     report_id: str

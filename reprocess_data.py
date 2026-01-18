@@ -28,8 +28,8 @@ def reprocess_all():
     new_cards = []
     new_discarded = []
     
-    for i, report in enumerate(reports): 
-        print(f"[{i+1}/{len(reports)}] Processing: {report.title[:50]}...")
+    for i, report in enumerate(reports[:3]): 
+        print(f"[{i+1}/{3}] Processing: {report.title[:50]}...")
         
         # [NEW] Translate Report Metadata if missing
         if not report.title_ko:
@@ -57,7 +57,7 @@ def reprocess_all():
                 
                 if isinstance(result, OpportunityCard):
                     new_cards.append(result)
-                    print(f"  -> Opportunity: {result.problem_summary[:30]}... ({result.importance_score})")
+                    print(f"  -> Opportunity: {result.attack_vector[:30]}... ({result.importance_score})")
                 elif hasattr(result, 'reason'): 
                     new_discarded.append(result)
                     

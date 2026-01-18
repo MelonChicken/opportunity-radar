@@ -10,35 +10,39 @@ load_dotenv()
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 PROMPT_TEMPLATE = """
-You are an expert technology analyst identifying opportunities for **startups and software developers**.
-Analyze the following sentence extracted from a PwC report and the report context.
+You are a Founder-in-Residence identifying **startup opportunities** from generic business reports.
+Your goal is not to summarize, but to **deconstruct** the text into a concrete "Pain Point" and a plausible "Attack Vector" for a new startup.
 
-**Goal**: Determine if this sentence indicates a specific **Market Problem**, **Technology Gap**, or **Unmet Customer Need** that a startup could solve.
+**Framework for Analysis**:
+1. **Pain Holder (Who)**: Who exactly is suffering? (e.g., "Middle managers in manufacturing", "Compliance officers in Fintech"). Be specific.
+2. **Pain Context (Where)**: In what specific wokflow or situation does this occur? (e.g., "During quarterly reconciliation", "When managing remote fleets").
+3. **Pain Mechanism (Why)**: Why is this hard? (e.g., "Data is siloed", "Manual entry causes errors", "Lack of real-time visibility").
+4. **Attack Vector (How)**: Suggest a plausible product/service approach. (e.g., "Automated reconciliation agent", "IoT-based fleet dashboard").
 
 **Discard Criteria (Score < 50)**:
-- Vague high-level statements (e.g., "Sustainability is important").
-- Macro-economic forecasts without specific business angles to build on.
-- Problems requiring only government policy changes.
-- Abstract corporate advice (e.g., "Leaders must adapt").
+- Vague statements ("Growth is slowing").
+- Problems solvable only by regulation/policy.
+- Generic corporate advice ("Leaders must lead").
 
-**Keep Criteria (Score > 70)**:
-- Specific pain points (e.g., "Banks struggle to process unstructured data").
-- Emerging demand (e.g., "Rising need for AI-driven ESG reporting tools").
-- Operational inefficiencies.
+**Output Format (JSON)**:
+{{
+  "pain_holder": "...",
+  "pain_holder_ko": "...",
+  "pain_context": "...",
+  "pain_context_ko": "...",
+  "pain_mechanism": "...",
+  "pain_mechanism_ko": "...",
+  "attack_vector": "...",
+  "attack_vector_ko": "...",
+  "evidence_sentence": "...",
+  "evidence_sentence_ko": "...",
+  "industry_tags": ["..."],
+  "technology_tags": ["..."],
+  "importance_score": 0-100,
+  "confidence_score": 0.0-1.0
+}}
 
-If it is a valid signal, structure it into a JSON object with the following fields:
-- problem_summary: A concise 1-sentence summary of the problem/opportunity.
-- problem_summary_ko: Korean translation of problem_summary.
-- evidence_sentence: The exact sentence provided.
-- evidence_sentence_ko: Korean translation of evidence_sentence.
-- industry_tags: List of relevant industries (e.g., Finance, Healthcare, Auto).
-- technology_tags: List of relevant technologies (e.g., AI, Blockchain, Cloud).
-- expected_value: Description of the potential value/impact.
-- expected_value_ko: Korean translation of expected_value.
-- importance_score: Integer 1-100 (100 being critical disruption/opportunity).
-- confidence_score: Float 0.0-1.0 (How confident are you this is a real signal).
-
-If it is NOT a valid signal based on the criteria above, return a JSON with importance_score: 0.
+If NOT a valid startup opportunity, return {{ "importance_score": 0 }}.
 
 Sentence: "{sentence}"
 Context: "{context}" (Report Title or Summary)
@@ -68,12 +72,15 @@ def generate_signal_struct(candidate_text: str, context_summary: str, report_id:
         )
         
         content = response.choices[0].message.content
+        print(f"DEBUG LLM CONTENT: {content!r}") # Print raw content
         data = json.loads(content)
+        print(f"DEBUG PARSED DATA: {data}")
         
         score = data.get("importance_score", 0)
         
         if score < 50:
-            return DiscardedSignal(
+             # ... existing logic ...
+             return DiscardedSignal(
                 signal_id=f"disc_{int(datetime.now().timestamp())}_{hash(candidate_text[:10])}",
                 report_id=report_id,
                 reason=f"Low Score: {score}",
@@ -83,21 +90,30 @@ def generate_signal_struct(candidate_text: str, context_summary: str, report_id:
             
         return OpportunityCard(
             card_id=f"card_{int(datetime.now().timestamp())}_{hash(candidate_text[:10])}",
-            problem_summary=data.get("problem_summary", "Unknown Issue"),
-            problem_summary_ko=data.get("problem_summary_ko"),
+            
+            # v2 Fields
+            pain_holder=data.get("pain_holder", "Unknown"),
+            pain_holder_ko=data.get("pain_holder_ko"),
+            pain_context=data.get("pain_context", "Unknown"),
+            pain_context_ko=data.get("pain_context_ko"),
+            pain_mechanism=data.get("pain_mechanism", "Unknown"),
+            pain_mechanism_ko=data.get("pain_mechanism_ko"),
+            attack_vector=data.get("attack_vector", "Unknown"),
+            attack_vector_ko=data.get("attack_vector_ko"),
+            
             evidence_sentence=candidate_text,
             evidence_sentence_ko=data.get("evidence_sentence_ko"),
             industry_tags=data.get("industry_tags", []),
             technology_tags=data.get("technology_tags", []),
-            expected_value=data.get("expected_value", "Unknown"),
-            expected_value_ko=data.get("expected_value_ko"),
             importance_score=score,
             confidence_score=data.get("confidence_score", 0.0),
             report_id=report_id
         )
         
     except Exception as e:
-        print(f"Error calling LLM: {e}")
+        import traceback
+        traceback.print_exc()
+        print(f"Error calling LLM: {e!r}") # Use repr to see full error structure
 
 def translate_report(report) -> None:
     """
