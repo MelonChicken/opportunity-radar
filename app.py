@@ -50,56 +50,135 @@ st.set_page_config(
 )
 
 # --- CSS Styling (Premium Feel) ---
+# --- CSS Styling (Premium Design System) ---
 st.markdown("""
 <style>
+    /* 1. Global Reset & Typography */
     .stApp {
-        background-color: #0e1117;
-        color: #fafafa;
+        background-color: #0F1419; /* Deep Dark Background */
+        font-family: 'Inter', -apple-system, sans-serif;
     }
+    
+    /* 2. Top Navigation & Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 24px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 10px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        white-space: pre-wrap;
+        background-color: transparent;
+        border-radius: 4px;
+        color: rgba(255,255,255,0.6);
+        font-size: 16px;
+        font-weight: 600;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: rgba(30, 136, 229, 0.2) !important;
+        color: #1E88E5 !important; /* Primary Blue */
+        border-bottom: 2px solid #1E88E5;
+    }
+    
+    /* 3. Metrics / KPI Cards */
     .metric-card {
-        background-color: #262730;
-        padding: 20px;
-        border-radius: 10px;
-        border: 1px solid #41424C;
-        text-align: center;
-    }
-    .signal-card {
-        background-color: #1E1E1E; /* Darker card background */
-        padding: 24px;
+        background-color: rgba(255, 255, 255, 0.05); /* Glassmorphism */
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px;
-        border: 1px solid #333;
+        padding: 24px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+        transition: transform 0.2s;
+    }
+    .metric-card:hover {
+        transform: translateY(-2px);
+        border-color: #1E88E5;
+    }
+    .metric-card h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .metric-card h2 {
+        font-size: 42px;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin: 0;
+    }
+    
+    /* 4. Signal Cards (The Main UI) */
+    .signal-card {
+        background-color: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08); /* Subtle border */
+        border-radius: 12px;
+        padding: 20px;
         margin-bottom: 16px;
-        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.2s ease-in-out;
     }
     .signal-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        border-color: #FF4B4B; /* Streamlit Red accent */
+        background-color: rgba(255, 255, 255, 0.06);
+        border-color: rgba(99, 102, 241, 0.4); /* Indigo glow */
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        transform: translateY(-1px);
+    }
+    .signal-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background-color: #1E88E5; /* Default accent */
+    }
+    
+    /* 5. Badges & Tags */
+    .score-badge {
+        background-color: rgba(30, 136, 229, 0.15);
+        color: #1E88E5;
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-weight: 700;
+        font-size: 14px;
+        border: 1px solid rgba(30, 136, 229, 0.3);
+    }
+    .score-high {
+        color: #43A047; /* Success Green */
+        background-color: rgba(67, 160, 71, 0.15);
+        border-color: rgba(67, 160, 71, 0.3);
     }
     .tag {
         display: inline-block;
-        padding: 2px 8px;
+        padding: 2px 10px;
         margin-right: 6px;
         margin-bottom: 6px;
-        border-radius: 4px;
-        background-color: #31333F;
-        font-size: 0.8em;
-        color: #E6E6E6;
-        border: 1px solid #41424C;
+        border-radius: 6px;
+        background-color: rgba(255,255,255,0.08);
+        font-size: 12px;
+        color: rgba(255,255,255,0.8);
+        border: 1px solid rgba(255,255,255,0.1);
     }
-    .score-badge {
-        font-weight: bold;
-        font-size: 1.2em;
-        color: #FF4B4B;
+    
+    /* 6. Sidebar Cleanup */
+    [data-testid="stSidebar"] {
+        background-color: #0b0e11;
+        border-right: 1px solid rgba(255,255,255,0.05);
     }
 </style>
 """, unsafe_allow_html=True)
 
 # --- Sidebar ---
 st.sidebar.title("Research Radar 📡")
+st.sidebar.caption("AI-Powered Intelligence")
 st.sidebar.markdown("---")
 
-if st.sidebar.button("Run Ingestion Pipeline 🚀"):
+# Global Actions (Pipeline)
+# Global Actions (Pipeline)
+if st.sidebar.button("Run Ingestion Pipeline 🚀", type="primary"):
     with st.sidebar.status("Running Pipeline...", expanded=True) as status:
         st.write("Initializing...")
         
@@ -119,7 +198,9 @@ if st.sidebar.button("Run Ingestion Pipeline 🚀"):
             status.update(label="Pipeline Failed", state="error")
             st.sidebar.error(f"Error: {e}")
 
-# --- Language Settings ---
+st.sidebar.markdown("---")
+
+# Language Settings
 lang = st.sidebar.radio("Language / 언어", ["English", "한국어"])
 is_ko = lang == "한국어"
 
@@ -133,7 +214,6 @@ T = {
     "Industry": "Industry" if not is_ko else "산업군",
     "Technology": "Technology" if not is_ko else "기술",
     "Min Score": "Min Importance Score" if not is_ko else "최소 중요도 점수",
-    "Run Pipeline": "Run Ingestion Pipeline 🚀" if not is_ko else "수집 파이프라인 실행 🚀",
     "Show Admin": "Show Admin View (Discarded Signals)" if not is_ko else "관리자 뷰 보기 (버려진 신호)",
     "No Signals": "No opportunity cards found. Run the ingestion pipeline to get started." if not is_ko else "기회 카드가 없습니다. 수집 파이프라인을 실행해주세요.",
     "Footer": "Built with Streamlit & OpenAI" if not is_ko else "Streamlit & OpenAI 기반 제작",
@@ -143,10 +223,51 @@ T = {
     "signals": "signals" if not is_ko else "건",
     "View Details": "View Details & Source" if not is_ko else "상세 정보 및 출처 확인",
     "Source Link": "Source Report" if not is_ko else "원본 리포트",
+    
+    # User Guide Strings
+    "Tab_Dashboard": "📊 Dashboard" if not is_ko else "📊 대시보드",
+    "Tab_Guide": "📚 User Guide & Methodology" if not is_ko else "📚 사용 가이드 및 방법론",
+    
+    "Guide_Intro": """### How to Use Research Radar
+1. **Filter**: Use the sidebar to select industries or technologies of interest.
+2. **Explore**: Browse the opportunity cards. Each card represents a distinct **'Attack Vector'** (Startup Idea).
+3. **Deep Dive**: Click **'View Details'** to see the full context, who holds the pain point, and the source report link.
+""" if not is_ko else """### 리서치 레이더 사용법
+1. **필터**: 사이드바를 사용하여 관심 있는 산업군이나 기술을 선택하세요.
+2. **탐색**: 기회 카드를 살펴보세요. 각 카드는 구체적인 **'공략 포인트'** (스타트업 아이디어)를 나타냅니다.
+3. **상세 보기**: **'상세 정보 확인'**을 클릭하여 전체 맥락, 페인 포인트의 주체, 원본 리포트 링크를 확인하세요.
+""",
+
+    "Guide_Methodology": """### Scoring Methodology (The 'Founder-in-Residence' Framework)
+Our AI analyzes reports using a strict Venture Capital framework to identify **valid startup opportunities**, not just trends.
+
+| Component | Meaning |
+| :--- | :--- |
+| **Pain Holder** | **Who** is suffering? (e.g., "Compliance Officers" is better than "Banks") |
+| **Pain Mechanism** | **Why** is it hard? (Manual entry, siloed data, regulatory pressure) |
+| **Attack Vector** | **How** can a startup solve this? (e.g., "Automated Reconciliation Agent") |
+
+#### Importance Score (0-100)
+- **< 50 (Discarded)**: Vague statements, macro trends, or problems solvable only by policy/regulation.
+- **50 - 79 (Opportunity)**: Valid pain points, but may be niche or less urgent.
+- **80+ (Critical Signal)**: **High Urgency**. Specific pain, clear target, and plausible solution.
+""" if not is_ko else """### 점수 산정 방법론 ('Founder-in-Residence' 프레임워크)
+AI는 단순한 트렌드가 아닌 **실질적인 스타트업 사업 기회**를 포착하기 위해 엄격한 벤처 캐피탈 프레임워크를 사용합니다.
+
+| 항목 | 의미 |
+| :--- | :--- |
+| **페인 홀더 (Pain Holder)** | **누가** 고통받고 있는가? (예: "은행"보다 "준법 감시 담당자"가 더 구체적임) |
+| **메커니즘 (Mechanism)** | **왜** 어려운가? (수기 입력, 데이터 고립, 규제 압박 등) |
+| **공략 포인트 (Attack Vector)** | 스타트업이 **어떻게** 해결할 수 있는가? (예: "자동 대사 에이전트") |
+
+#### 중요도 점수 (0-100)
+- **< 50 (제외됨)**: 모호한 진술, 거시 경제 트렌드, 또는 정책/규제로만 해결 가능한 문제.
+- **50 - 79 (사업 기회)**: 유효한 페인 포인트이나, 니치 마켓이거나 시급성이 낮을 수 있음.
+- **80+ (핵심 신호)**: **높은 시급성**. 구체적인 고통, 명확한 대상, 그리고 실현 가능한 해결책이 존재함.
+"""
 }
             
-st.sidebar.subheader(T["Filters"])
-# Filters logic
+# Logic to load data but wait to render filters
 all_cards = load_cards()
 df_cards = pd.DataFrame([c.model_dump() for c in all_cards])
 
@@ -154,130 +275,181 @@ df_cards = pd.DataFrame([c.model_dump() for c in all_cards])
 reports = load_reports()
 report_map = {r.report_id: r for r in reports}
 
+all_industries = set()
+all_techs = set()
+
 if not df_cards.empty:
-    # Industry Filter
-    all_industries = set()
     for tags in df_cards['industry_tags']:
         all_industries.update(tags)
-    selected_industries = st.sidebar.multiselect(T["Industry"], sorted(list(all_industries)))
-    
-    # Tech Filter
-    all_techs = set()
     for tags in df_cards['technology_tags']:
         all_techs.update(tags)
-    selected_techs = st.sidebar.multiselect(T["Technology"], sorted(list(all_techs)))
-    
-    # Score Filter
-    min_score = st.sidebar.slider(T["Min Score"], 0, 100, 50)
-else:
-    selected_industries = []
-    selected_techs = []
-    min_score = 0
+
+selected_industries = []
+selected_techs = []
+min_score = 0
 
 
 # --- Main Dashboard ---
 st.title(T["Dashboard Title"])
 
-# Admin Toggle
-if st.sidebar.checkbox(T["Show Admin"]):
-    st.subheader("Discarded Signals (Admin)")
-    from src.storage import load_discarded_signals
-    discarded = load_discarded_signals()
-    
-    if discarded:
-        df_discarded = pd.DataFrame([d.model_dump() for d in discarded])
-        st.dataframe(df_discarded, use_container_width=True)
-    else:
-        st.info("No discarded signals found.")
-else:
-    st.markdown(T["Dashboard Subtitle"])
+# Tabs
+tab1, tab2 = st.tabs([T["Tab_Dashboard"], T["Tab_Guide"]])
 
-    # Metrics Row
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown(f'<div class="metric-card"><h3>{T["Total Signals"]}</h3><h2>{len(df_cards)}</h2></div>', unsafe_allow_html=True)
-    with col2:
-        high_value_count = len(df_cards[df_cards['importance_score'] > 80]) if not df_cards.empty else 0
-        st.markdown(f'<div class="metric-card"><h3>{T["Critical Signals"]}</h3><h2>{high_value_count}</h2></div>', unsafe_allow_html=True)
-    with col3:
-        reports_count = len(reports)
-        st.markdown(f'<div class="metric-card"><h3>{T["Reports Tracked"]}</h3><h2>{reports_count}</h2></div>', unsafe_allow_html=True)
-
+with tab2:
+    st.markdown(T["Guide_Intro"])
     st.markdown("---")
+    st.markdown(T["Guide_Methodology"])
+    
+with tab1:
+    # --- Top Controls & Filters ---
+    st.markdown("###") # Spacer
+    
+    with st.expander("🔍 Filters & Search / 필터 및 검색", expanded=True):
+        f_col1, f_col2, f_col3 = st.columns([2, 2, 1])
+        with f_col1:
+            selected_industries = st.multiselect(T["Industry"], sorted(list(all_industries)))
+        with f_col2:
+            selected_techs = st.multiselect(T["Technology"], sorted(list(all_techs)))
+        with f_col3:
+            min_score = st.slider(T["Min Score"], 0, 100, 50)
+            
+        # Admin Toggle
+        show_admin = st.checkbox(T["Show Admin"])
 
-    # Filtering Data
-    if not df_cards.empty:
-        filtered_df = df_cards.copy()
+    if show_admin:
+        st.subheader("Discarded Signals (Admin)")
+        from src.storage import load_discarded_signals
+        discarded = load_discarded_signals()
         
-        if selected_industries:
-            # Check if any selected industry is in the row's industry_tags
-            filtered_df = filtered_df[filtered_df['industry_tags'].apply(lambda x: any(i in x for i in selected_industries))]
-            
-        if selected_techs:
-            filtered_df = filtered_df[filtered_df['technology_tags'].apply(lambda x: any(t in x for t in selected_techs))]
-            
-        filtered_df = filtered_df[filtered_df['importance_score'] >= min_score]
-        
-        # Sort by Importance
-        filtered_df = filtered_df.sort_values(by="importance_score", ascending=False)
-        
-        # --- Pagination ---
-        items_per_page = 5
-        total_items = len(filtered_df)
-        total_pages = max(1, (total_items + items_per_page - 1) // items_per_page)
-        
-        if total_pages > 1:
-            page = st.number_input(T["Page"], min_value=1, max_value=total_pages, value=1)
+        if discarded:
+            df_discarded = pd.DataFrame([d.model_dump() for d in discarded])
+            st.dataframe(df_discarded, use_container_width=True)
         else:
-            page = 1
-            
-        start_idx = (page - 1) * items_per_page
-        end_idx = start_idx + items_per_page
-        
-        page_df = filtered_df.iloc[start_idx:end_idx]
-        
-        st.caption(f"{T['Showing']} {start_idx+1}-{min(end_idx, total_items)} {T['of']} {total_items} {T['signals']}")
-        
-        # Display Cards
-        for index, row in page_df.iterrows():
-            # Language Fallback Logic
-            attack = row.get('attack_vector_ko') if is_ko and row.get('attack_vector_ko') else row.get('attack_vector')
-            holder = row.get('pain_holder_ko') if is_ko and row.get('pain_holder_ko') else row.get('pain_holder')
-            evidence = row.get('evidence_sentence_ko') if is_ko and row.get('evidence_sentence_ko') else row.get('evidence_sentence')
-            
-            # HTML Construction
-            ind_tags = ' '.join([f'<span class="tag">{tag}</span>' for tag in row.get('industry_tags', [])])
-            tech_tags = ' '.join([f'<span class="tag" style="background-color:#4a2b2b;">{tag}</span>' for tag in row.get('technology_tags', [])])
-            
-            # Use strict dedent to prevent markdown code block rendering
-            card_html = textwrap.dedent(f"""
-                <div class="signal-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3 style="margin:0;">{attack}</h3>
-                        <span class="score-badge">{row['importance_score']}</span>
-                    </div>
-                    <div style="margin-top:8px; color:#ddd;">
-                        <strong>{'For' if not is_ko else '대상'}:</strong> {holder}
-                    </div>
-                    <p style="color:#bbb; font-style:italic; margin-top:8px;">"{evidence}"</p>
-                    <div style="margin-top:10px;">
-                        {ind_tags}
-                        {tech_tags}
-                    </div>
-                </div>
-            """)
-
-
-            with st.container():
-                st.markdown(card_html, unsafe_allow_html=True)
-                
-                # Click Action - Use primary button for visibility
-                if st.button(T["View Details"], key=f"btn_{row['card_id']}", use_container_width=True, type="primary"):
-                    print(f"DEBUG: Button clicked corresponding to {row['card_id']}")
-                    show_details_dialog(row.to_dict(), is_ko, T, report_map)
-                    
+            st.info("No discarded signals found.")
     else:
-        st.info(T["No Signals"])
+        # Metrics Row (Premium Layout)
+        m_col1, m_col2, m_col3 = st.columns(3)
+        with m_col1:
+            st.markdown(f'<div class="metric-card"><h3>{T["Total Signals"]}</h3><h2>{len(df_cards)}</h2></div>', unsafe_allow_html=True)
+        with m_col2:
+            high_value_count = len(df_cards[df_cards['importance_score'] > 80]) if not df_cards.empty else 0
+            st.markdown(f'<div class="metric-card"><h3>{T["Critical Signals"]}</h3><h2>{high_value_count}</h2></div>', unsafe_allow_html=True)
+        with m_col3:
+            reports_count = len(reports)
+            st.markdown(f'<div class="metric-card"><h3>{T["Reports Tracked"]}</h3><h2>{reports_count}</h2></div>', unsafe_allow_html=True)
+
+        st.markdown("---")
+
+        # Filtering Logic
+        if not df_cards.empty:
+            filtered_df = df_cards.copy()
+            
+            if selected_industries:
+                filtered_df = filtered_df[filtered_df['industry_tags'].apply(lambda x: any(i in x for i in selected_industries))]
+                
+            if selected_techs:
+                filtered_df = filtered_df[filtered_df['technology_tags'].apply(lambda x: any(t in x for t in selected_techs))]
+                
+            filtered_df = filtered_df[filtered_df['importance_score'] >= min_score]
+            
+            # Sort by Importance
+            filtered_df = filtered_df.sort_values(by="importance_score", ascending=False)
+            
+            # --- Pagination (Improved) ---
+            if 'page' not in st.session_state:
+                st.session_state.page = 1
+                
+            items_per_page = 5
+            total_items = len(filtered_df)
+            total_pages = max(1, (total_items + items_per_page - 1) // items_per_page)
+            
+            if st.session_state.page > total_pages:
+                st.session_state.page = total_pages
+            
+            # Pagination UI
+            if total_pages > 1:
+                col_c = st.columns(9)
+                start_p = max(1, st.session_state.page - 2)
+                end_p = min(total_pages, start_p + 4)
+                if end_p - start_p < 4: start_p = max(1, end_p - 4)
+                
+                # First/Prev
+                with col_c[0]:
+                    if st.button("<<", key="first"): st.session_state.page = 1; st.rerun()
+                with col_c[1]:
+                    if st.button("<", key="prev") and st.session_state.page > 1: st.session_state.page -= 1; st.rerun()
+                
+                # Numbers
+                idx = 2
+                for p in range(start_p, end_p + 1):
+                    if idx < 7:
+                        with col_c[idx]:
+                            if p == st.session_state.page:
+                                st.button(str(p), key=f"p_{p}", disabled=True, type="primary")
+                            else:
+                                if st.button(str(p), key=f"p_{p}"): st.session_state.page = p; st.rerun()
+                    idx+=1
+                    
+                # Next/Last
+                with col_c[7]:
+                     if st.button(">", key="next") and st.session_state.page < total_pages: st.session_state.page += 1; st.rerun()
+                with col_c[8]:
+                     if st.button(">>", key="last"): st.session_state.page = total_pages; st.rerun()
+            
+            # Slice Data
+            p_start = (st.session_state.page - 1) * items_per_page
+            p_end = p_start + items_per_page
+            page_df = filtered_df.iloc[p_start:p_end]
+            
+            st.caption(f"{T['Showing']} {p_start+1}-{min(p_end, total_items)} {T['of']} {total_items} {T['signals']}")
+            
+            # Render Cards
+            for index, row in page_df.iterrows():
+                # Language Fallback
+                attack = row.get('attack_vector_ko') if is_ko and row.get('attack_vector_ko') else row.get('attack_vector')
+                holder = row.get('pain_holder_ko') if is_ko and row.get('pain_holder_ko') else row.get('pain_holder')
+                evidence = row.get('evidence_sentence_ko') if is_ko and row.get('evidence_sentence_ko') else row.get('evidence_sentence')
+                
+                # Tags
+                ind_tags = ' '.join([f'<span class="tag">{tag}</span>' for tag in row.get('industry_tags', [])])
+                tech_tags = ' '.join([f'<span class="tag" style="background-color:rgba(255, 100, 100, 0.1); color:#ffcccc;">{tag}</span>' for tag in row.get('technology_tags', [])])
+                
+                # Badge Style
+                score_class = "score-high" if row['importance_score'] >= 80 else ""
+                
+                card_html = textwrap.dedent(f"""
+                    <div class="signal-card">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                            <div>
+                                <h3 style="margin:0; font-size:18px; color:#fff;">{attack}</h3>
+                                <div style="margin-top:4px; font-size:13px; color:rgba(255,255,255,0.6);">
+                                    {'Targets' if not is_ko else '대상'}: <strong style="color:rgba(255,255,255,0.9);">{holder}</strong>
+                                </div>
+                            </div>
+                            <span class="score-badge {score_class}">
+                                Score {row['importance_score']}
+                            </span>
+                        </div>
+                        
+                        <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:8px; margin-bottom:12px;">
+                            <p style="color:rgba(255,255,255,0.7); font-style:italic; font-size:14px; margin:0; line-height:1.5;">
+                                "{evidence}"
+                            </p>
+                        </div>
+                        
+                        <div style="display:flex; flex-wrap:wrap; gap:4px; align-items:center;">
+                            {ind_tags} {tech_tags}
+                        </div>
+                    </div>
+                """)
+                
+                with st.container():
+                    st.markdown(card_html, unsafe_allow_html=True)
+                    if st.button(T["View Details"], key=f"btn_{row['card_id']}", use_container_width=True):
+                        show_details_dialog(row.to_dict(), is_ko, T, report_map)
+
+        else:
+            st.info(T["No Signals"])
 
 # --- Footer ---
 st.markdown(f"<br><br><div style='text-align:center; color:#666;'>{T['Footer']}</div>", unsafe_allow_html=True)
