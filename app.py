@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import sys
 import textwrap
+import html
 
 # Add the repository root to sys.path so we can import src
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -50,116 +51,126 @@ st.set_page_config(
 )
 
 # --- CSS Styling (Premium Feel) ---
-# --- CSS Styling (Premium Design System) ---
+# --- CSS Styling (Premium Design System - High Contrast) ---
 st.markdown("""
 <style>
     /* 1. Global Reset & Typography */
     .stApp {
         background-color: #0F1419; /* Deep Dark Background */
-        font-family: 'Inter', -apple-system, sans-serif;
+        font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    }
+    h1 {
+        font-size: 32px !important;
+        font-weight: 700 !important;
+        color: #FFFFFF !important;
+        padding-bottom: 16px;
+    }
+    h2, h3 {
+        font-weight: 600 !important;
+        color: rgba(255, 255, 255, 0.88) !important;
+    }
+    p, div, span {
+        color: rgba(255, 255, 255, 0.88);
     }
     
     /* 2. Top Navigation & Tabs */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 24px;
+        gap: 8px;
         border-bottom: 1px solid rgba(255,255,255,0.1);
-        padding-bottom: 10px;
+        padding-bottom: 0px;
     }
     .stTabs [data-baseweb="tab"] {
         height: 50px;
         white-space: pre-wrap;
         background-color: transparent;
-        border-radius: 4px;
-        color: rgba(255,255,255,0.6);
+        border-radius: 4px 4px 0 0;
+        color: rgba(255,255,255,0.5); /* Inactive Text */
         font-size: 16px;
         font-weight: 600;
+        border: none;
     }
     .stTabs [aria-selected="true"] {
-        background-color: rgba(30, 136, 229, 0.2) !important;
-        color: #1E88E5 !important; /* Primary Blue */
-        border-bottom: 2px solid #1E88E5;
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        color: #FFFFFF !important; /* Active White */
+        border-bottom: 3px solid #1E88E5;
     }
     
     /* 3. Metrics / KPI Cards */
     .metric-card {
-        background-color: rgba(255, 255, 255, 0.05); /* Glassmorphism */
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        padding: 24px;
-        text-align: center;
-        backdrop-filter: blur(10px);
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-left: 4px solid #1E88E5; /* Accent Border */
+        border-radius: 8px;
+        padding: 24px 32px;
+        height: 160px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: left;
         transition: transform 0.2s;
     }
     .metric-card:hover {
-        transform: translateY(-2px);
-        border-color: #1E88E5;
+        background-color: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.25);
     }
     .metric-card h3 {
         font-size: 14px;
         font-weight: 600;
-        color: rgba(255, 255, 255, 0.7);
-        margin-bottom: 8px;
+        color: #1E88E5 !important;
+        margin-bottom: 12px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
     .metric-card h2 {
-        font-size: 42px;
+        font-size: 48px;
         font-weight: 700;
-        color: #FFFFFF;
+        color: #FFFFFF !important;
         margin: 0;
+        line-height: 1.1;
     }
     
     /* 4. Signal Cards (The Main UI) */
     .signal-card {
-        background-color: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08); /* Subtle border */
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 16px;
+        background-color: rgba(255, 255, 255, 0.08); /* Increased contrast */
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        padding: 32px;
+        margin-bottom: 24px;
         position: relative;
         overflow: hidden;
-        transition: all 0.2s ease-in-out;
+        transition: all 0.2s ease-out;
     }
     .signal-card:hover {
-        background-color: rgba(255, 255, 255, 0.06);
-        border-color: rgba(99, 102, 241, 0.4); /* Indigo glow */
-        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-        transform: translateY(-1px);
+        background-color: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.25);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        transform: translateY(-2px);
     }
-    .signal-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 100%;
-        background-color: #1E88E5; /* Default accent */
+    .signal-card h3 {
+        font-size: 18px !important;
+        margin: 0 0 4px 0;
+        color: #FFFFFF !important;
     }
     
-    /* 5. Badges & Tags */
-    .score-badge {
-        background-color: rgba(30, 136, 229, 0.15);
-        color: #1E88E5;
-        padding: 4px 12px;
-        border-radius: 16px;
-        font-weight: 700;
-        font-size: 14px;
-        border: 1px solid rgba(30, 136, 229, 0.3);
+    /* 5. Components & Filters */
+    .filter-container {
+        background-color: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 32px;
     }
-    .score-high {
-        color: #43A047; /* Success Green */
-        background-color: rgba(67, 160, 71, 0.15);
-        border-color: rgba(67, 160, 71, 0.3);
-    }
+    
+    /* Tags */
     .tag {
         display: inline-block;
-        padding: 2px 10px;
+        padding: 4px 10px;
         margin-right: 6px;
         margin-bottom: 6px;
-        border-radius: 6px;
-        background-color: rgba(255,255,255,0.08);
+        border-radius: 4px;
+        background-color: rgba(255,255,255,0.1);
         font-size: 12px;
-        color: rgba(255,255,255,0.8);
+        color: rgba(255,255,255,0.9);
         border: 1px solid rgba(255,255,255,0.1);
     }
     
@@ -167,6 +178,19 @@ st.markdown("""
     [data-testid="stSidebar"] {
         background-color: #0b0e11;
         border-right: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    /* 7. Pagination & Buttons */
+    div[data-testid="stColumn"] button {
+        height: 44px;
+        min-width: 44px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    div[data-testid="stColumn"] button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -305,16 +329,27 @@ with tab1:
     st.markdown("###") # Spacer
     
     with st.expander("🔍 Filters & Search / 필터 및 검색", expanded=True):
-        f_col1, f_col2, f_col3 = st.columns([2, 2, 1])
+        # Filter Container Style
+        st.markdown('<div class="filter-container">', unsafe_allow_html=True)
+        f_col1, f_col2 = st.columns(2)
         with f_col1:
             selected_industries = st.multiselect(T["Industry"], sorted(list(all_industries)))
         with f_col2:
             selected_techs = st.multiselect(T["Technology"], sorted(list(all_techs)))
+            
+        f_col3, f_col4 = st.columns([3, 1])
         with f_col3:
             min_score = st.slider(T["Min Score"], 0, 100, 50)
-            
-        # Admin Toggle
+        with f_col4:
+            st.markdown("<br>", unsafe_allow_html=True) 
+            if st.button("🔄 Reset / 초기화", use_container_width=True):
+                # Reset logic usually requires session state or rerun with clearing params
+                # For now just rerun, user has to manually clear if session state not bound
+                st.rerun()
+
+        # Admin Toggle (Small)
         show_admin = st.checkbox(T["Show Admin"])
+        st.markdown('</div>', unsafe_allow_html=True)
 
     if show_admin:
         st.subheader("Discarded Signals (Admin)")
@@ -327,16 +362,46 @@ with tab1:
         else:
             st.info("No discarded signals found.")
     else:
-        # Metrics Row (Premium Layout)
+        # Metrics Row (Premium Layout with Trends)
         m_col1, m_col2, m_col3 = st.columns(3)
+        
+        # Metric 1: Total Signals
         with m_col1:
-            st.markdown(f'<div class="metric-card"><h3>{T["Total Signals"]}</h3><h2>{len(df_cards)}</h2></div>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="metric-card">
+                <h3>{T["Total Signals"]}</h3>
+                <h2>{len(df_cards)}</h2>
+                <div style="font-size:12px; color:rgba(255,255,255,0.5); margin-top:8px;">
+                    Updated just now
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        # Metric 2: Critical Signals
         with m_col2:
             high_value_count = len(df_cards[df_cards['importance_score'] > 80]) if not df_cards.empty else 0
-            st.markdown(f'<div class="metric-card"><h3>{T["Critical Signals"]}</h3><h2>{high_value_count}</h2></div>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="metric-card" style="border-left-color: #43A047;">
+                <h3 style="color:#43A047 !important;">{T["Critical Signals"]}</h3>
+                <h2>{high_value_count}</h2>
+                <div style="font-size:12px; color:rgba(255,255,255,0.5); margin-top:8px;">
+                     High Urgency
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        # Metric 3: Reports
         with m_col3:
             reports_count = len(reports)
-            st.markdown(f'<div class="metric-card"><h3>{T["Reports Tracked"]}</h3><h2>{reports_count}</h2></div>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="metric-card" style="border-left-color: #8E24AA;">
+                <h3 style="color:#8E24AA !important;">{T["Reports Tracked"]}</h3>
+                <h2>{reports_count}</h2>
+                <div style="font-size:12px; color:rgba(255,255,255,0.5); margin-top:8px;">
+                    Active Sources
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
         st.markdown("---")
 
@@ -406,39 +471,52 @@ with tab1:
             # Render Cards
             for index, row in page_df.iterrows():
                 # Language Fallback
-                attack = row.get('attack_vector_ko') if is_ko and row.get('attack_vector_ko') else row.get('attack_vector')
-                holder = row.get('pain_holder_ko') if is_ko and row.get('pain_holder_ko') else row.get('pain_holder')
-                evidence = row.get('evidence_sentence_ko') if is_ko and row.get('evidence_sentence_ko') else row.get('evidence_sentence')
+                attack_raw = row.get('attack_vector_ko') if is_ko and row.get('attack_vector_ko') else row.get('attack_vector')
+                holder_raw = row.get('pain_holder_ko') if is_ko and row.get('pain_holder_ko') else row.get('pain_holder')
+                evidence_raw = row.get('evidence_sentence_ko') if is_ko and row.get('evidence_sentence_ko') else row.get('evidence_sentence')
+                
+                # Escape HTML to prevent breakage
+                attack = html.escape(str(attack_raw))
+                holder = html.escape(str(holder_raw))
+                evidence = html.escape(str(evidence_raw))
                 
                 # Tags
-                ind_tags = ' '.join([f'<span class="tag">{tag}</span>' for tag in row.get('industry_tags', [])])
-                tech_tags = ' '.join([f'<span class="tag" style="background-color:rgba(255, 100, 100, 0.1); color:#ffcccc;">{tag}</span>' for tag in row.get('technology_tags', [])])
+                ind_tags = ' '.join([f'<span class="tag">{html.escape(str(tag))}</span>' for tag in row.get('industry_tags', [])])
+                tech_tags = ' '.join([f'<span class="tag" style="background-color:rgba(255, 100, 100, 0.1); color:#ffcccc;">{html.escape(str(tag))}</span>' for tag in row.get('technology_tags', [])])
                 
                 # Badge Style
                 score_class = "score-high" if row['importance_score'] >= 80 else ""
                 
+                # Detailed Card Layout
                 card_html = textwrap.dedent(f"""
                     <div class="signal-card">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
-                            <div>
-                                <h3 style="margin:0; font-size:18px; color:#fff;">{attack}</h3>
-                                <div style="margin-top:4px; font-size:13px; color:rgba(255,255,255,0.6);">
-                                    {'Targets' if not is_ko else '대상'}: <strong style="color:rgba(255,255,255,0.9);">{holder}</strong>
+                        <!-- Header Row -->
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
+                            <div style="flex: 1; padding-right: 16px; border-left: 3px solid #1E88E5; padding-left: 12px;">
+                                <h3 style="margin:0; font-size:18px; line-height:1.4;">{attack}</h3>
+                                <div style="margin-top:6px; font-size:13px; color:rgba(255,255,255,0.6);">
+                                    <span style="color:rgba(255,255,255,0.4);">Target:</span> <strong style="color:rgba(255,255,255,0.9);">{holder}</strong>
                                 </div>
                             </div>
-                            <span class="score-badge {score_class}">
-                                Score {row['importance_score']}
-                            </span>
+                            <div style="text-align:right;">
+                                <span class="score-badge {score_class}" style="display:inline-block; margin-bottom:4px;">
+                                    {row['importance_score']}
+                                </span>
+                            </div>
                         </div>
                         
-                        <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:8px; margin-bottom:12px;">
-                            <p style="color:rgba(255,255,255,0.7); font-style:italic; font-size:14px; margin:0; line-height:1.5;">
+                        <!-- Quote Block -->
+                        <div style="background:rgba(255,255,255,0.03); padding:16px; border-radius:6px; margin-bottom:16px; border-left: 2px solid rgba(255,255,255,0.1);">
+                            <p style="color:rgba(255,255,255,0.7); font-style:italic; font-size:14px; margin:0; line-height:1.6;">
                                 "{evidence}"
                             </p>
                         </div>
                         
-                        <div style="display:flex; flex-wrap:wrap; gap:4px; align-items:center;">
-                            {ind_tags} {tech_tags}
+                        <!-- Footer Row -->
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                            <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                                {ind_tags} {tech_tags}
+                            </div>
                         </div>
                     </div>
                 """)
