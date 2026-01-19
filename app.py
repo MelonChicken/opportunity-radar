@@ -272,8 +272,35 @@ st.sidebar.markdown("---")
 
 # Global Actions (Pipeline)
 # Global Actions (Pipeline)
-# [DEPLOYMENT MODE] Pipeline execution disabled to protect API usage.
-st.sidebar.info("Ingestion Pipeline is disabled in this demo.")
+if st.sidebar.button("Run Ingestion Pipeline 🚀", type="primary"):
+    with st.sidebar.status("Running Pipeline...", expanded=True) as status:
+        st.write("Initializing...")
+        
+        # Log container
+        log_container = st.empty()
+        
+        # Redirect stdout/stderr to capture logs
+        class StreamToLogger(object):
+            def __init__(self, logger_func):
+                self.logger_func = logger_func
+            def write(self, buf):
+                for line in buf.rstrip().splitlines():
+                    self.logger_func(line.rstrip())
+            def flush(self): pass
+
+        def log_output(line):
+            log_container.code(line)
+
+        # Run Pipeline
+        try:
+            # sys.stdout = StreamToLogger(log_output) # Capture standard output
+            run_pipeline()
+            status.update(label="Pipeline Completed!", state="complete", expanded=False)
+            st.success("Ingestion Pipeline Completed Successfully!")
+            st.rerun()
+        except Exception as e:
+            status.update(label="Pipeline Failed", state="error")
+            st.error(f"An error occurred: {e}")
 
 st.sidebar.markdown("---")
 
