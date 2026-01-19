@@ -210,6 +210,9 @@ st.markdown("""
     
     /* 7. Pagination & Buttons */
     div[data-testid="stColumn"] button {
+        background-color: rgba(255,255,255,0.1) !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        color: white !important;
         height: 44px;
         min-width: 44px;
         border-radius: 8px;
@@ -217,8 +220,16 @@ st.markdown("""
         transition: all 0.2s;
     }
     div[data-testid="stColumn"] button:hover {
+        background-color: rgba(255,255,255,0.2) !important;
+        border-color: white !important;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    div[data-testid="stColumn"] button:disabled {
+        background-color: #1E88E5 !important;
+        color: white !important;
+        border-color: #1E88E5 !important;
+        opacity: 1 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -515,43 +526,30 @@ with tab1:
                 # Badge Style
                 score_class = "score-high" if row['importance_score'] >= 80 else ""
                 
-                # Detailed Card Layout
-                card_html = textwrap.dedent(f"""
-                    <div class="signal-card">
-                        <!-- Header Row -->
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
-                            <div style="flex: 1; padding-right: 16px; border-left: 3px solid #1E88E5; padding-left: 12px;">
-                                <h3 style="margin:0; font-size:18px; line-height:1.4;">{attack}</h3>
-                                <div style="margin-top:6px; font-size:13px; color:rgba(255,255,255,0.6);">
-                                    <span style="color:rgba(255,255,255,0.4);">Target:</span> <strong style="color:rgba(255,255,255,0.9);">{holder}</strong>
-                                </div>
-                            </div>
-                            <div style="text-align:right;">
-                                <span class="score-badge {score_class}" style="display:inline-block; margin-bottom:4px;">
-                                    {row['importance_score']}
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <!-- Quote Block -->
-                        <div style="background:rgba(255,255,255,0.03); padding:16px; border-radius:6px; margin-bottom:16px; border-left: 2px solid rgba(255,255,255,0.1);">
-                            <p style="color:rgba(255,255,255,0.7); font-style:italic; font-size:14px; margin:0; line-height:1.6;">
-                                "{evidence}"
-                            </p>
-                        </div>
-                        
-                        <!-- Footer Row -->
-                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                            <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                                {ind_tags} {tech_tags}
-                            </div>
-                        </div>
-                    </div>
-                """)
+                # Detailed Card Layout - FLAT STRING to prevent Markdown code block interpretation
+                # We join lines manually to avoid any implicit indentation from multiline strings
+                card_html = "".join([
+                    f'<div class="signal-card">',
+                    f'<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">',
+                    f'<div style="flex: 1; padding-right: 16px; border-left: 3px solid #1E88E5; padding-left: 12px;">',
+                    f'<h3 style="margin:0; font-size:18px; line-height:1.4;">{attack}</h3>',
+                    f'<div style="margin-top:6px; font-size:13px; color:rgba(255,255,255,0.6);">',
+                    f'<span style="color:rgba(255,255,255,0.4);">Target:</span> <strong style="color:rgba(255,255,255,0.9);">{holder}</strong>',
+                    f'</div></div>',
+                    f'<div style="text-align:right;">',
+                    f'<span class="score-badge {score_class}" style="display:inline-block; margin-bottom:4px;">{row["importance_score"]}</span>',
+                    f'</div></div>',
+                    f'<div style="background:rgba(255,255,255,0.03); padding:16px; border-radius:6px; margin-bottom:16px; border-left: 2px solid rgba(255,255,255,0.1);">',
+                    f'<p style="color:rgba(255,255,255,0.7); font-style:italic; font-size:14px; margin:0; line-height:1.6;">"{evidence}"</p>',
+                    f'</div>',
+                    f'<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">',
+                    f'<div style="display:flex; flex-wrap:wrap; gap:4px;">{ind_tags} {tech_tags}</div>',
+                    f'</div></div>'
+                ])
                 
                 with st.container():
                     st.markdown(card_html, unsafe_allow_html=True)
-                    if st.button(T["View Details"], key=f"btn_{row['card_id']}", use_container_width=True):
+                    if st.button(T["View Details"], key=f"btn_{row['card_id']}_{index}", use_container_width=True):
                         show_details_dialog(row.to_dict(), is_ko, T, report_map)
 
         else:
