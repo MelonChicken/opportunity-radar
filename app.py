@@ -508,46 +508,47 @@ with tab1:
             st.caption(f"{T['Showing']} {p_start+1}-{min(p_end, total_items)} {T['of']} {total_items} {T['signals']}")
             
             # Render Cards
-            for index, row in page_df.iterrows():
-                # Language Fallback
-                attack_raw = row.get('attack_vector_ko') if is_ko and row.get('attack_vector_ko') else row.get('attack_vector')
-                holder_raw = row.get('pain_holder_ko') if is_ko and row.get('pain_holder_ko') else row.get('pain_holder')
-                evidence_raw = row.get('evidence_sentence_ko') if is_ko and row.get('evidence_sentence_ko') else row.get('evidence_sentence')
-                
-                # Escape HTML to prevent breakage
-                attack = html.escape(str(attack_raw))
-                holder = html.escape(str(holder_raw))
-                evidence = html.escape(str(evidence_raw))
-                
-                # Tags
-                ind_tags = ' '.join([f'<span class="tag">{html.escape(str(tag))}</span>' for tag in row.get('industry_tags', [])])
-                tech_tags = ' '.join([f'<span class="tag" style="background-color:rgba(255, 100, 100, 0.1); color:#ffcccc;">{html.escape(str(tag))}</span>' for tag in row.get('technology_tags', [])])
-                
-                # Badge Style
-                score_class = "score-high" if row['importance_score'] >= 80 else ""
-                
-                # Detailed Card Layout - FLAT STRING to prevent Markdown code block interpretation
-                # We join lines manually to avoid any implicit indentation from multiline strings
-                card_html = "".join([
-                    f'<div class="signal-card">',
-                    f'<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">',
-                    f'<div style="flex: 1; padding-right: 16px; border-left: 3px solid #1E88E5; padding-left: 12px;">',
-                    f'<h3 style="margin:0; font-size:18px; line-height:1.4;">{attack}</h3>',
-                    f'<div style="margin-top:6px; font-size:13px; color:rgba(255,255,255,0.6);">',
-                    f'<span style="color:rgba(255,255,255,0.4);">Target:</span> <strong style="color:rgba(255,255,255,0.9);">{holder}</strong>',
-                    f'</div></div>',
-                    f'<div style="text-align:right;">',
-                    f'<span class="score-badge {score_class}" style="display:inline-block; margin-bottom:4px;">{row["importance_score"]}</span>',
-                    f'</div></div>',
-                    f'<div style="background:rgba(255,255,255,0.03); padding:16px; border-radius:6px; margin-bottom:16px; border-left: 2px solid rgba(255,255,255,0.1);">',
-                    f'<p style="color:rgba(255,255,255,0.7); font-style:italic; font-size:14px; margin:0; line-height:1.6;">"{evidence}"</p>',
-                    f'</div>',
-                    f'<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">',
-                    f'<div style="display:flex; flex-wrap:wrap; gap:4px;">{ind_tags} {tech_tags}</div>',
-                    f'</div></div>'
-                ])
-                
-                with st.container():
+            cols = st.columns(2)
+            for i, (index, row) in enumerate(page_df.iterrows()):
+                with cols[i % 2]:
+                    # Language Fallback
+                    attack_raw = row.get('attack_vector_ko') if is_ko and row.get('attack_vector_ko') else row.get('attack_vector')
+                    holder_raw = row.get('pain_holder_ko') if is_ko and row.get('pain_holder_ko') else row.get('pain_holder')
+                    evidence_raw = row.get('evidence_sentence_ko') if is_ko and row.get('evidence_sentence_ko') else row.get('evidence_sentence')
+                    
+                    # Escape HTML to prevent breakage
+                    attack = html.escape(str(attack_raw))
+                    holder = html.escape(str(holder_raw))
+                    evidence = html.escape(str(evidence_raw))
+                    
+                    # Tags
+                    ind_tags = ' '.join([f'<span class="tag">{html.escape(str(tag))}</span>' for tag in row.get('industry_tags', [])])
+                    tech_tags = ' '.join([f'<span class="tag" style="background-color:rgba(255, 100, 100, 0.1); color:#ffcccc;">{html.escape(str(tag))}</span>' for tag in row.get('technology_tags', [])])
+                    
+                    # Badge Style
+                    score_class = "score-high" if row['importance_score'] >= 80 else ""
+                    
+                    # Detailed Card Layout - FLAT STRING to prevent Markdown code block interpretation
+                    # We join lines manually to avoid any implicit indentation from multiline strings
+                    card_html = "".join([
+                        f'<div class="signal-card" style="height:100%;">', # Added height 100% for alignment
+                        f'<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">',
+                        f'<div style="flex: 1; padding-right: 16px; border-left: 3px solid #1E88E5; padding-left: 12px;">',
+                        f'<h3 style="margin:0; font-size:18px; line-height:1.4;">{attack}</h3>',
+                        f'<div style="margin-top:6px; font-size:13px; color:rgba(255,255,255,0.6);">',
+                        f'<span style="color:rgba(255,255,255,0.4);">Target:</span> <strong style="color:rgba(255,255,255,0.9);">{holder}</strong>',
+                        f'</div></div>',
+                        f'<div style="text-align:right;">',
+                        f'<span class="score-badge {score_class}" style="display:inline-block; margin-bottom:4px;">{row["importance_score"]}</span>',
+                        f'</div></div>',
+                        f'<div style="background:rgba(255,255,255,0.03); padding:16px; border-radius:6px; margin-bottom:16px; border-left: 2px solid rgba(255,255,255,0.1);">',
+                        f'<p style="color:rgba(255,255,255,0.7); font-style:italic; font-size:14px; margin:0; line-height:1.6;">"{evidence}"</p>',
+                        f'</div>',
+                        f'<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">',
+                        f'<div style="display:flex; flex-wrap:wrap; gap:4px;">{ind_tags} {tech_tags}</div>',
+                        f'</div></div>'
+                    ])
+                    
                     st.markdown(card_html, unsafe_allow_html=True)
                     if st.button(T["View Details"], key=f"btn_{row['card_id']}_{index}", use_container_width=True):
                         show_details_dialog(row.to_dict(), is_ko, T, report_map)
