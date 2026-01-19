@@ -178,25 +178,8 @@ st.sidebar.markdown("---")
 
 # Global Actions (Pipeline)
 # Global Actions (Pipeline)
-if st.sidebar.button("Run Ingestion Pipeline 🚀", type="primary"):
-    with st.sidebar.status("Running Pipeline...", expanded=True) as status:
-        st.write("Initializing...")
-        
-        # Log container
-        log_container = st.empty()
-        
-        def ui_logger(msg):
-            log_container.text(msg)
-            print(msg)
-            
-        try:
-            reports_found, reports_processed, cards_created = run_pipeline(log_callback=ui_logger)
-            status.update(label="Pipeline Completed!", state="complete", expanded=False)
-            st.sidebar.success(f"Found: {reports_found}, Processed: {reports_processed}, New Cards: {cards_created}")
-            st.rerun()
-        except Exception as e:
-            status.update(label="Pipeline Failed", state="error")
-            st.sidebar.error(f"Error: {e}")
+# [DEPLOYMENT MODE] Pipeline execution disabled to protect API usage.
+st.sidebar.info("Ingestion Pipeline is disabled in this demo.")
 
 st.sidebar.markdown("---")
 
