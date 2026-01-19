@@ -28,8 +28,8 @@ def reprocess_all():
     new_cards = []
     new_discarded = []
     
-    for i, report in enumerate(reports[:3]): 
-        print(f"[{i+1}/{3}] Processing: {report.title[:50]}...")
+    for i, report in enumerate(reports): 
+        print(f"[{i+1}/{len(reports)}] Processing: {report.title[:50]}...")
         
         # [NEW] Translate Report Metadata if missing
         if not report.title_ko:
@@ -52,7 +52,7 @@ def reprocess_all():
             print(f"  -> {len(candidates)} candidates.")
             
             # Structuring
-            for candidate in candidates[:5]: # Keep limit for time/cost
+            for candidate in candidates: # Process all candidates
                 result = generate_signal_struct(candidate, report.title, report.report_id)
                 
                 if isinstance(result, OpportunityCard):

@@ -12,7 +12,7 @@ from src.storage import load_cards, load_reports
 from src.models import OpportunityCard
 
 @st.dialog("Signal Details / 상세 내용")
-def show_details_dialog(row, is_ko, T):
+def show_details_dialog(row, is_ko, T, report_map):
     # Language Fallback
     attack = row.get('attack_vector_ko') if is_ko and row.get('attack_vector_ko') else row.get('attack_vector')
     holder = row.get('pain_holder_ko') if is_ko and row.get('pain_holder_ko') else row.get('pain_holder')
@@ -37,7 +37,11 @@ def show_details_dialog(row, is_ko, T):
     st.markdown("---")
     st.markdown(f"**Report ID:** {row['report_id']}")
     st.markdown(f"**{'Source Report' if not is_ko else '원본 리포트'}**")
-    st.write(f"[{T['Source Link']}](#)") # Placeholder link
+    
+    report = report_map.get(row['report_id'])
+    report_url = report.url if report else "#"
+    
+    st.write(f"[{T['Source Link']}]({report_url})")
     
 st.set_page_config(
     page_title="Research Radar",
@@ -138,13 +142,17 @@ T = {
     "of": "of" if not is_ko else "/",
     "signals": "signals" if not is_ko else "건",
     "View Details": "View Details & Source" if not is_ko else "상세 정보 및 출처 확인",
-    "Source Link": "Source Report Link would go here" if not is_ko else "원본 리포트 링크가 여기에 표시됩니다",
+    "Source Link": "Source Report" if not is_ko else "원본 리포트",
 }
             
 st.sidebar.subheader(T["Filters"])
 # Filters logic
 all_cards = load_cards()
 df_cards = pd.DataFrame([c.model_dump() for c in all_cards])
+
+# Load Reports and create Map
+reports = load_reports()
+report_map = {r.report_id: r for r in reports}
 
 if not df_cards.empty:
     # Industry Filter
@@ -192,7 +200,7 @@ else:
         high_value_count = len(df_cards[df_cards['importance_score'] > 80]) if not df_cards.empty else 0
         st.markdown(f'<div class="metric-card"><h3>{T["Critical Signals"]}</h3><h2>{high_value_count}</h2></div>', unsafe_allow_html=True)
     with col3:
-        reports_count = len(load_reports())
+        reports_count = len(reports)
         st.markdown(f'<div class="metric-card"><h3>{T["Reports Tracked"]}</h3><h2>{reports_count}</h2></div>', unsafe_allow_html=True)
 
     st.markdown("---")
@@ -266,7 +274,7 @@ else:
                 # Click Action - Use primary button for visibility
                 if st.button(T["View Details"], key=f"btn_{row['card_id']}", use_container_width=True, type="primary"):
                     print(f"DEBUG: Button clicked corresponding to {row['card_id']}")
-                    show_details_dialog(row.to_dict(), is_ko, T)
+                    show_details_dialog(row.to_dict(), is_ko, T, report_map)
                     
     else:
         st.info(T["No Signals"])
