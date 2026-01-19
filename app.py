@@ -469,8 +469,11 @@ with tab1:
                 
             filtered_df = filtered_df[filtered_df['importance_score'] >= min_score]
             
-            # Sort by Importance
-            filtered_df = filtered_df.sort_values(by="importance_score", ascending=False)
+            # Sort by Newest (Created At) then Importance
+            if 'created_at' in filtered_df.columns:
+                 filtered_df = filtered_df.sort_values(by=["created_at", "importance_score"], ascending=[False, False])
+            else:
+                 filtered_df = filtered_df.sort_values(by="importance_score", ascending=False)
             
             # --- Pagination (Improved) ---
             if 'page' not in st.session_state:
