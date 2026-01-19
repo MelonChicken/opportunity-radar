@@ -98,8 +98,8 @@ st.markdown("""
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-left: 4px solid #1E88E5;
         border-radius: 8px;
-        padding: 24px 32px; /* Adjusted Padding */
-        height: 140px;      /* Reduced Height */
+        padding: 24px 32px;
+        height: 160px;      /* Optimized Height */
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -114,7 +114,7 @@ st.markdown("""
         font-size: 14px;
         font-weight: 600;
         color: #1E88E5 !important;
-        margin-bottom: 12px;
+        margin-bottom: 8px; /* Reduced margin */
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
