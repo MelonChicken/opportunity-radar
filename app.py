@@ -96,10 +96,10 @@ st.markdown("""
     .metric-card {
         background-color: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.15);
-        border-left: 4px solid #1E88E5; /* Accent Border */
+        border-left: 4px solid #1E88E5;
         border-radius: 8px;
-        padding: 24px 32px;
-        height: 160px;
+        padding: 24px 32px; /* Adjusted Padding */
+        height: 140px;      /* Reduced Height */
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -128,14 +128,20 @@ st.markdown("""
     
     /* 4. Signal Cards (The Main UI) */
     .signal-card {
-        background-color: rgba(255, 255, 255, 0.08); /* Increased contrast */
+        background-color: rgba(255, 255, 255, 0.08);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 8px;
-        padding: 32px;
+        padding: 24px;
         margin-bottom: 24px;
         position: relative;
         overflow: hidden;
         transition: all 0.2s ease-out;
+        
+        /* New: Fixed Height & Flex Layout */
+        height: 380px; 
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
     .signal-card:hover {
         background-color: rgba(255, 255, 255, 0.12);
@@ -149,6 +155,20 @@ st.markdown("""
         color: #FFFFFF !important;
     }
     
+    /* Text Truncation Utilities */
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .line-clamp-4 {
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
     /* 5. Components & Filters */
     .filter-container {
         background-color: rgba(255, 255, 255, 0.03);
@@ -158,12 +178,13 @@ st.markdown("""
         margin-bottom: 32px;
     }
     
-    /* Fix Expander Header Contrast */
+    /* Fix Expander Header Contrast & Padding */
     .streamlit-expanderHeader {
         color: #FFFFFF !important;
         font-weight: 600;
         background-color: rgba(255,255,255,0.05) !important;
         border-radius: 4px;
+        padding: 14px 20px !important; /* Increased Padding */
     }
     .streamlit-expanderHeader svg {
         fill: #FFFFFF !important;
@@ -197,7 +218,7 @@ st.markdown("""
         margin-bottom: 6px;
         border-radius: 4px;
         background-color: rgba(255,255,255,0.1);
-        font-size: 12px;
+        font-size: 11px; /* Slightly smaller for density */
         color: rgba(255,255,255,0.9);
         border: 1px solid rgba(255,255,255,0.1);
     }
@@ -212,12 +233,15 @@ st.markdown("""
     div[data-testid="stColumn"] button {
         background-color: rgba(255,255,255,0.1) !important;
         border: 1px solid rgba(255,255,255,0.2) !important;
-        color: white !important;
+        color: #FFFFFF !important; /* Explicit White */
         height: 44px;
         min-width: 44px;
         border-radius: 8px;
         font-weight: 600;
         transition: all 0.2s;
+    }
+    div[data-testid="stColumn"] button p {
+        color: #FFFFFF !important; /* Force Text White */
     }
     div[data-testid="stColumn"] button:hover {
         background-color: rgba(255,255,255,0.2) !important;
@@ -225,11 +249,18 @@ st.markdown("""
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
+    div[data-testid="stColumn"] button:active, div[data-testid="stColumn"] button:focus {
+        color: #FFFFFF !important;
+        border-color: white !important;
+    }
     div[data-testid="stColumn"] button:disabled {
         background-color: #1E88E5 !important;
         color: white !important;
         border-color: #1E88E5 !important;
         opacity: 1 !important;
+    }
+    div[data-testid="stColumn"] button:disabled p {
+        color: white !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -514,22 +545,32 @@ with tab1:
                     # Detailed Card Layout - FLAT STRING to prevent Markdown code block interpretation
                     # We join lines manually to avoid any implicit indentation from multiline strings
                     card_html = "".join([
-                        f'<div class="signal-card" style="height:100%;">', # Added height 100% for alignment
-                        f'<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">',
-                        f'<div style="flex: 1; padding-right: 16px; border-left: 3px solid #1E88E5; padding-left: 12px;">',
-                        f'<h3 style="margin:0; font-size:18px; line-height:1.4;">{attack}</h3>',
-                        f'<div style="margin-top:6px; font-size:13px; color:rgba(255,255,255,0.6);">',
-                        f'<span style="color:rgba(255,255,255,0.4);">Target:</span> <strong style="color:rgba(255,255,255,0.9);">{holder}</strong>',
-                        f'</div></div>',
-                        f'<div style="text-align:right;">',
-                        f'<span class="score-badge {score_class}" style="display:inline-block; margin-bottom:4px;">{row["importance_score"]}</span>',
-                        f'</div></div>',
-                        f'<div style="background:rgba(255,255,255,0.03); padding:16px; border-radius:6px; margin-bottom:16px; border-left: 2px solid rgba(255,255,255,0.1);">',
-                        f'<p style="color:rgba(255,255,255,0.7); font-style:italic; font-size:14px; margin:0; line-height:1.6;">"{evidence}"</p>',
+                        f'<div class="signal-card">',
+                        # Header Section (Fixed Height-ish)
+                        f'<div style="flex: 0 0 auto; margin-bottom:12px;">',
+                            f'<div style="display:flex; justify-content:space-between; align-items:flex-start;">',
+                                f'<div style="flex: 1; padding-right: 12px; border-left: 3px solid #1E88E5; padding-left: 12px;">',
+                                    f'<h3 class="line-clamp-2" style="margin:0; font-size:18px; line-height:1.4;">{attack}</h3>', # Clamped Title
+                                    f'<div style="margin-top:6px; font-size:13px; color:rgba(255,255,255,0.6);">',
+                                        f'<span style="color:rgba(255,255,255,0.4);">Target:</span> <strong style="color:rgba(255,255,255,0.9);">{holder}</strong>',
+                                    f'</div>',
+                                f'</div>',
+                                f'<div style="text-align:right; flex: 0 0 auto;">',
+                                    f'<span class="score-badge {score_class}" style="display:inline-block;">{row["importance_score"]}</span>',
+                                f'</div>',
+                            f'</div>',
                         f'</div>',
-                        f'<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">',
-                        f'<div style="display:flex; flex-wrap:wrap; gap:4px;">{ind_tags} {tech_tags}</div>',
-                        f'</div></div>'
+                        
+                        # Content Section (Flexible height, pushes footer down)
+                        f'<div style="flex: 1 1 auto; overflow: hidden; margin-bottom: 12px; background:rgba(255,255,255,0.03); padding:16px; border-radius:6px; border-left: 2px solid rgba(255,255,255,0.1);">',
+                            f'<p class="line-clamp-4" style="color:rgba(255,255,255,0.7); font-style:italic; font-size:14px; margin:0; line-height:1.6;">"{evidence}"</p>', # Clamped Evidence
+                        f'</div>',
+                        
+                        # Footer Section (Fixed at bottom)
+                        f'<div style="flex: 0 0 auto;">',
+                            f'<div style="display:flex; flex-wrap:wrap; gap:4px;">{ind_tags} {tech_tags}</div>',
+                        f'</div>',
+                        f'</div>'
                     ])
                     
                     st.markdown(card_html, unsafe_allow_html=True)
