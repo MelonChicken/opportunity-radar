@@ -69,9 +69,6 @@ st.markdown("""
         font-weight: 600 !important;
         color: rgba(255, 255, 255, 0.88) !important;
     }
-    p, div, span {
-        color: rgba(255, 255, 255, 0.88);
-    }
     
     /* 2. Top Navigation & Tabs */
     .stTabs [data-baseweb="tab-list"] {
@@ -159,6 +156,37 @@ st.markdown("""
         border-radius: 8px;
         padding: 20px;
         margin-bottom: 32px;
+    }
+    
+    /* Fix Expander Header Contrast */
+    .streamlit-expanderHeader {
+        color: #FFFFFF !important;
+        font-weight: 600;
+        background-color: rgba(255,255,255,0.05) !important;
+        border-radius: 4px;
+    }
+    .streamlit-expanderHeader svg {
+        fill: #FFFFFF !important;
+    }
+    .streamlit-expanderContent {
+        background-color: transparent !important;
+        color: #FFFFFF !important;
+    }
+    
+    /* Fix Multiselect & Inputs */
+    .stMultiSelect label, .stSlider label, .stCheckbox label {
+        color: #FFFFFF !important;
+    }
+    
+    /* Fix Reset Button (Secondary) to be visible */
+    button[kind="secondary"] {
+        background-color: #0F1419 !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        color: #FFFFFF !important;
+    }
+    button[kind="secondary"]:hover {
+        border-color: #1E88E5 !important;
+        color: #1E88E5 !important;
     }
     
     /* Tags */
