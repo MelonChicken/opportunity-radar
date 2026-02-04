@@ -34,7 +34,7 @@ def load_css():
     }
     
     h1, h2, h3 { color: #FFFFFF !important; }
-    p, span, div { color: var(--text-primary); }
+
     
     /* 2. Sidebar Fixes (Contrast) */
     section[data-testid="stSidebar"] {
