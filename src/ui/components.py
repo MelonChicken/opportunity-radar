@@ -1,8 +1,9 @@
 import streamlit as st
 import html
 import pandas as pd
+from src.logic.prompts import build_prompt_from_card
 
-@st.dialog("Signal Details / 상세 내용")
+@st.dialog("Signal Details / 상세 내용", width="large")
 def show_details_dialog(row, is_ko, T, report_map):
     # Language Fallback
     attack = row.get('attack_vector_ko') if is_ko and row.get('attack_vector_ko') else row.get('attack_vector')
@@ -11,28 +12,54 @@ def show_details_dialog(row, is_ko, T, report_map):
     mechanism = row.get('pain_mechanism_ko') if is_ko and row.get('pain_mechanism_ko') else row.get('pain_mechanism')
     evidence = row.get('evidence_sentence_ko') if is_ko and row.get('evidence_sentence_ko') else row.get('evidence_sentence')
     
-    st.subheader(attack)
-    st.caption(f"Score: {row['importance_score']} | Confidence: {int(row.get('confidence_score', 0)*100)}%")
-    
-    st.markdown("---")
-    
-    st.markdown(f"**{'Target Customer (Who)' if not is_ko else '타겟 고객 (Who)'}**")
-    st.write(f"**{holder}** in *{context}*")
-
-    st.markdown(f"**{'Pain Point (Why)' if not is_ko else '페인 포인트 (Why)'}**")
-    st.write(mechanism)
-    
-    st.markdown(f"**{'Evidence' if not is_ko else '근거 문장'}**")
-    st.info(f"{evidence}")
-    
-    st.markdown("---")
-    st.markdown(f"**Report ID:** {row['report_id']}")
-    st.markdown(f"**{'Source Report' if not is_ko else '원본 리포트'}**")
-    
     report = report_map.get(row['report_id'])
     report_url = report.url if report else "#"
     
-    st.write(f"[{T['Report Source']}]({report_url})")
+    # Generate Prompt (Pass English Data usually, or raw row)
+    # The prompt template expects English keys mostly, let's pass the raw row which has them.
+    # report_url is passed explicitly.
+    prompt_text = build_prompt_from_card(row, report_url)
+
+    left, right = st.columns([1.1, 1.9], gap="large")
+
+    with left:
+        st.markdown(f"### {'Target (Who)' if not is_ko else '타겟 고객 (Who)'}")
+        st.write(f"**{holder}**")
+        st.caption(f"Context: {context}")
+        
+        st.markdown(f"### {'Pain (Why)' if not is_ko else '페인 포인트 (Why)'}")
+        st.write(mechanism)
+        
+        st.markdown("### Tags")
+        ind_tags = ", ".join(row.get('industry_tags', []))
+        tech_tags = ", ".join(row.get('technology_tags', []))
+        st.write(f"**Industries:** {ind_tags}")
+        st.write(f"**Tech:** {tech_tags}")
+        
+        st.markdown("### Scores")
+        st.write(f"Score: {row['importance_score']} | Confidence: {int(row.get('confidence_score', 0)*100)}%")
+        
+        st.markdown("---")
+        st.markdown(f"**Report ID:** {row['report_id']}")
+        # st.markdown(f"**{'Source Report' if not is_ko else '원본 리포트'}**")
+        st.write(f"[{T['Report Source']}]({report_url})")
+
+    with right:
+        st.markdown(f"### {'Evidence' if not is_ko else '근거 문장'}")
+        st.info(evidence)
+        
+        st.markdown("### ChatGPT Prompt")
+        with st.container(height=220):
+            st.code(prompt_text, language="text")
+        # st.text_area("prompt", prompt_text, height=220, label_visibility="collapsed")
+        # st.text_area("prompt", prompt_text, height=220, label_visibility="collapsed")
+        
+        
+        c1, c2 = st.columns(2)
+        with c1:
+            st.link_button("Open ChatGPT", f"https://chatgpt.com")
+        with c2:
+            st.download_button("Download Prompt (.txt)", prompt_text, file_name="prompt.txt")
 
 def render_kpi_section(df_cards, reports, T):
     """Renders the KPI Header section."""
