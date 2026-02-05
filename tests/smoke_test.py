@@ -37,11 +37,13 @@ def test_card_model():
     print("Testing Opportunity Card Model...")
     card = OpportunityCard(
         card_id="test_card_1",
-        problem_summary="Test Problem",
+        pain_holder="Test Holder",
+        pain_context="Test Context",
+        pain_mechanism="Test Mechanism",
+        attack_vector="Test Attack Vector",
         evidence_sentence="Test Evidence",
         industry_tags=["Tech"],
         technology_tags=["AI"],
-        expected_value="High",
         importance_score=85,
         confidence_score=0.9,
         report_id="test_rep_1"
