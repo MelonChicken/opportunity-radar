@@ -10,6 +10,7 @@ from src.storage import load_cards, load_reports
 from src.ui.styles import apply_styles
 from src.ui.localization import get_translations
 from src.ui.layout import render_sidebar, render_main_content
+from src.pipeline import run_pipeline
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -21,14 +22,31 @@ st.set_page_config(
 def main():
     # --- Apply CSS ---
     apply_styles()
+    
+    # --- Language Initialization ---
+    if 'language' not in st.session_state:
+        st.session_state.language = "English"
+        
+    # --- Onboarding State ---
+    if 'has_seen_onboarding' not in st.session_state:
+        st.session_state.has_seen_onboarding = False
 
     # --- Sidebar ---
-    is_ko = render_sidebar()
+    # Defensive Coding: Handle potential module caching where render_sidebar might still return a tuple
+    sidebar_result = render_sidebar()
+    if isinstance(sidebar_result, tuple):
+        page = sidebar_result[1] # Legacy/Cached behavior (is_ko, page)
+    else:
+        page = sidebar_result
 
     # --- Localization ---
+    is_ko = st.session_state.language == "한국어"
     T = get_translations(is_ko)
 
-    # --- Data Loading ---
+    # --- Router ---
+    # Admin page removed per user request.
+    
+    # --- Data Loading (Lazy load unless needed) ---
     all_cards = load_cards()
     df_cards = pd.DataFrame([c.model_dump() for c in all_cards])
 
@@ -48,7 +66,7 @@ def main():
                 all_techs.update(tags)
 
     # --- Main Content Area ---
-    render_main_content(df_cards, reports, T, is_ko, all_industries, all_techs, report_map)
+    render_main_content(page, df_cards, reports, T, is_ko, all_industries, all_techs, report_map)
 
 if __name__ == "__main__":
     main()
