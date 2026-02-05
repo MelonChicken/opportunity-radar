@@ -48,22 +48,26 @@ Sentence: "{sentence}"
 Context: "{context}" (Report Title or Summary)
 """
 
+import logging
+
+# Configure logger
+logger = logging.getLogger(__name__)
+
 def generate_signal_struct(candidate_text: str, context_summary: str, report_id: str) -> OpportunityCard | None:
     """
     Calls OpenAI to restructure the candidate signal into an OpportunityCard.
     Returns DiscardedSignal if importance_score is too low.
     Returns None if LLM fails completely.
     """
-    from .models import DiscardedSignal # Import here to avoid circular dep if any
+    from .models import DiscardedSignal 
 
     if not os.environ.get("OPENAI_API_KEY"):
-        # Fallback or Mock for dev without key
-        print("Warning: No OPENAI_API_KEY found. Returning Mock.")
-        return None # Or return a mock object if desired for testing
+        logger.warning("No OPENAI_API_KEY found. Returning Mock.")
+        return None 
 
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo-1106", # Cost effective, supports json_object
+            model="gpt-3.5-turbo-1106", 
             messages=[
                 {"role": "system", "content": "You are a helpful assistant designed to output JSON."},
                 {"role": "user", "content": PROMPT_TEMPLATE.format(sentence=candidate_text, context=context_summary)}
@@ -72,14 +76,13 @@ def generate_signal_struct(candidate_text: str, context_summary: str, report_id:
         )
         
         content = response.choices[0].message.content
-        print(f"DEBUG LLM CONTENT: {content!r}") # Print raw content
+        logger.debug(f"LLM Response Content: {content}")
+        
         data = json.loads(content)
-        print(f"DEBUG PARSED DATA: {data}")
         
         score = data.get("importance_score", 0)
         
         if score < 50:
-             # ... existing logic ...
              return DiscardedSignal(
                 signal_id=f"disc_{int(datetime.now().timestamp())}_{hash(candidate_text[:10])}",
                 report_id=report_id,
@@ -90,8 +93,6 @@ def generate_signal_struct(candidate_text: str, context_summary: str, report_id:
             
         return OpportunityCard(
             card_id=f"card_{int(datetime.now().timestamp())}_{hash(candidate_text[:10])}",
-            
-            # v2 Fields
             pain_holder=data.get("pain_holder", "Unknown"),
             pain_holder_ko=data.get("pain_holder_ko"),
             pain_context=data.get("pain_context", "Unknown"),
@@ -100,7 +101,6 @@ def generate_signal_struct(candidate_text: str, context_summary: str, report_id:
             pain_mechanism_ko=data.get("pain_mechanism_ko"),
             attack_vector=data.get("attack_vector", "Unknown"),
             attack_vector_ko=data.get("attack_vector_ko"),
-            
             evidence_sentence=candidate_text,
             evidence_sentence_ko=data.get("evidence_sentence_ko"),
             industry_tags=data.get("industry_tags", []),
@@ -111,9 +111,8 @@ def generate_signal_struct(candidate_text: str, context_summary: str, report_id:
         )
         
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        print(f"Error calling LLM: {e!r}") # Use repr to see full error structure
+        logger.error(f"Error calling LLM: {e}", exc_info=True)
+        return None
 
 def translate_report(report) -> None:
     """
