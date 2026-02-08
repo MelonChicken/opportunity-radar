@@ -109,7 +109,7 @@ def render_main_content(page, df_cards, reports, T, is_ko, all_industries, all_t
         """, unsafe_allow_html=True)
 
         # 1. KPI / Header Section
-        render_kpi_section(df_cards, reports, T)
+        render_kpi_section(df_cards, reports, T, is_ko)
 
         # 2. Middle Section: Trending & Framework
         m1, m2 = st.columns([1.2, 1.8], gap="large")
@@ -249,28 +249,40 @@ def render_main_content(page, df_cards, reports, T, is_ko, all_industries, all_t
         c1, c2, c3 = st.columns([3, 1, 1], gap="small")
         
         with c1:
-            search_query = st.text_input("Search", placeholder=T["Search Placeholder"], label_visibility="collapsed", key="feed_search")
+            # Cognitive Analysis: Better Placeholder
+            search_query = st.text_input("Search", placeholder=T.get("Search_Placeholder_New", T["Search Placeholder"]), label_visibility="collapsed", key="feed_search")
             
-            # Quick Filters (P0: 1.3)
+            # Cognitive Analysis: Chips for "Try:" section
             q_tags = ["Fraud Detection", "Climate Risk", "Legal AI", "Supply Chain"] if not is_ko else ["사기 탐지", "기후 리스크", "법률 AI", "공급망"]
-            st.markdown(f"<div style='margin-top:4px; margin-bottom:8px; font-size:0.8rem; color:#94A3B8;'>{T.get('Quick Filters', 'Try')}:</div>", unsafe_allow_html=True)
             
-            # Callback for safe state update
+            # Helper to create chip-like buttons using custom CSS or just columns
+            # Using columns for now as Streamlit native buttons are limited in style without extra hacks
+            st.markdown(f"<div style='margin-top:8px; margin-bottom:8px; display:flex; align-items:center; gap:8px;'>", unsafe_allow_html=True)
+            st.markdown(f"<span style='font-size:0.85rem; color:#64748B; margin-right:4px;'>{T.get('Quick Filters', 'Try')}:</span>", unsafe_allow_html=True)
+            
+            # Callback safely updates state
             def set_search_query(q):
                 st.session_state.feed_search = q
 
-            # Use columns for quick tags
-            cols = st.columns(len(q_tags))
+            # We render buttons horizontally. 
+            # Note: Streamlit buttons inside markdown is tricky. We'll use columns below the text label.
+            st.markdown("</div>", unsafe_allow_html=True)
+            
+            # Chip Row
+            chip_cols = st.columns([1, 1, 1, 1, 3]) # Adjust ratios to fit
             for i, tag in enumerate(q_tags):
-                cols[i].button(tag, key=f"qtag_{i}", use_container_width=True, 
-                             on_click=set_search_query, args=(tag,))
+                 if i < 4:
+                     # Use type="secondary" for a softer look (if theme supports it, else default)
+                     chip_cols[i].button(tag, key=f"qtag_{i}", on_click=set_search_query, args=(tag,), use_container_width=True)
             
         with c2:
-            # Sort Logic
-            sort_options = ["Latest", "Importance"] if not is_ko else ["최신순", "중요도순"]
+            # Sort Logic: Added Highest Score
+            sort_options = ["Latest", "Highest Score"] if not is_ko else ["최신순", "높은 점수순"]
             sort_selection = st.selectbox("Sort", sort_options, label_visibility="collapsed", key="feed_sort")
             
         with c3:
+            # Cognitive Analysis: Show active count if possible?
+            # For now, just Toggle
             show_advanced = st.toggle(T["Advanced Filters"], value=False)
             
         st.markdown('</div>', unsafe_allow_html=True)
@@ -280,71 +292,95 @@ def render_main_content(page, df_cards, reports, T, is_ko, all_industries, all_t
         min_score = 0
 
         # Advanced Filters (Collapsible)
+        score_range = (0, 100) # Default
         if show_advanced:
             with st.container():
                 st.markdown(f"#### {T['Advanced Filters']}")
-                af1, af2, af3 = st.columns(3)
-                with af1:
-                    selected_industries = st.multiselect(T["Industry"], sorted(list(all_industries)))
-                with af2:
-                    selected_techs = st.multiselect(T["Technology"], sorted(list(all_techs)))
-                with af3:
-                    min_score = st.slider(T["Min Score"], 0, 100, 50, step=10)
                 
-                if st.button(T["Reset"], type="secondary"):
-                    st.rerun()
+                # P2: Advanced Filters Structure (3 Columns)
+                af1, af2, af3 = st.columns([2, 2, 1], gap="medium")
+                
+                with af1:
+                    st.caption(f"**{T['Industry']} & {T['Technology']}**")
+                    selected_industries = st.multiselect(T["Industry"], sorted(list(all_industries)), label_visibility="collapsed", placeholder=f"Select {T['Industry']}...")
+                    selected_techs = st.multiselect(T["Technology"], sorted(list(all_techs)), label_visibility="collapsed", placeholder=f"Select {T['Technology']}...")
+                
+                with af2:
+                    st.caption(f"**{T.get('Filter_Label_Score_Range', 'Score Range')}**")
+                    score_range = st.slider(T.get('Filter_Label_Score_Range', 'Score Range'), 0, 100, (50, 100), label_visibility="collapsed")
+                    
+                    # Future: Date Range or Confidence Range here
+                
+                with af3:
+                    st.caption(f"**{T.get('Actions', 'Actions')}**")
+                    if st.button(T["Reset"], type="secondary", use_container_width=True):
+                        st.session_state.feed_search = ""
+                        st.rerun()
+                
                 st.markdown("---")
                 
         # Filtering Logic
         if not df_cards.empty:
-            # Apply Filters
-            filtered_df = filter_dataframe(df_cards, search_query, selected_industries, selected_techs, min_score)
+            # Apply Filters (Updated for Range)
+            filtered_df = filter_dataframe(df_cards, search_query, selected_industries, selected_techs, score_range)
             
             # Sort Logic
-            if sort_selection in ["Importance", "중요도순"] and 'importance_score' in filtered_df.columns:
+            if sort_selection in ["Importance", "Highest Score", "높은 점수순", "중요도순"] and 'importance_score' in filtered_df.columns:
                 filtered_df = filtered_df.sort_values(by='importance_score', ascending=False)
             else:
                 filtered_df = filtered_df.sort_values(by='created_at', ascending=False)
 
-            # Active Filters Display
-            if search_query:
-                st.markdown(f'<span class="filter-chip">🔍 "{search_query}"</span>', unsafe_allow_html=True)
-            
-            # Pagination
-            if 'card_page' not in st.session_state:
-                st.session_state.card_page = 1
-                
-            items_per_page = 6
-            page_df, total_pages, p_start, p_end = paginate_dataframe(filtered_df, st.session_state.card_page, items_per_page)
-            
-            if st.session_state.card_page > total_pages:
-                    st.session_state.card_page = max(1, total_pages)
-                    page_df, total_pages, p_start, p_end = paginate_dataframe(filtered_df, st.session_state.card_page, items_per_page)
-            
-            # Card Rendering
-            cols = st.columns(2)
-            for i, (index, row) in enumerate(page_df.iterrows()):
-                with cols[i % 2]:
-                    # Call Component to Render Card
-                    render_signal_card(row, index, is_ko, T, report_map)
+            # Active Filters Display & Result Count
+            st.markdown(f"<div style='margin-bottom:16px; font-size:1.1rem; color:#334155;'>{T['Filter_Result_Count'].format(count=len(filtered_df))}</div>", unsafe_allow_html=True)
 
-            # Pagination Controls
-            if total_pages > 1:
-                c_pg1, c_pg2 = st.columns([1, 1])
-                with c_pg2:
-                    c_b1, c_b2, c_b3, c_b4 = st.columns([1, 1, 3, 1])
-                    with c_b2:
-                        if st.button("<", key="prev_top", help="Previous Page"):
-                                if st.session_state.card_page > 1:
-                                    st.session_state.card_page -= 1
-                                    st.rerun()
-                    with c_b3:
-                            st.markdown(f"<div style='text-align:center; padding-top:10px;'>{st.session_state.card_page} / {total_pages}</div>", unsafe_allow_html=True)
-                    with c_b4:
-                        if st.button(">", key="next_top", help="Next Page"):
-                                if st.session_state.card_page < total_pages:
-                                    st.session_state.card_page += 1
-                                    st.rerun()
+            if search_query:
+                st.markdown(f'<span class="filter-chip" style="background:#EFF6FF; color:#2563EB; border:1px solid #BFDBFE;">🔍 "{search_query}"</span>', unsafe_allow_html=True)
+            
+            if filtered_df.empty:
+                 # Empty State
+                 st.markdown(f"""
+                 <div style="text-align:center; padding:40px; background:#F8FAFC; border-radius:12px; border:1px dashed #CBD5E1;">
+                     <div style="font-size:2rem; margin-bottom:10px;">🔍</div>
+                     <h3 style="color:#64748B;">{T.get('No_Results_Found', 'No results found.')}</h3>
+                     <p style="color:#94A3B8;">Try adjusting your filters or search terms.</p>
+                 </div>
+                 """, unsafe_allow_html=True)
+            else:
+                # Pagination
+                if 'card_page' not in st.session_state:
+                    st.session_state.card_page = 1
+                    
+                items_per_page = 6
+                page_df, total_pages, p_start, p_end = paginate_dataframe(filtered_df, st.session_state.card_page, items_per_page)
+                
+                if st.session_state.card_page > total_pages:
+                        st.session_state.card_page = max(1, total_pages)
+                        page_df, total_pages, p_start, p_end = paginate_dataframe(filtered_df, st.session_state.card_page, items_per_page)
+                
+                # Card Rendering
+                cols = st.columns(2)
+                for i, (index, row) in enumerate(page_df.iterrows()):
+                    with cols[i % 2]:
+                        # Call Component to Render Card
+                        render_signal_card(row, index, is_ko, T, report_map)
+
+                # Pagination Controls
+                if total_pages > 1:
+                    c_pg1, c_pg2 = st.columns([1, 1])
+                    with c_pg2:
+                        c_b1, c_b2, c_b3, c_b4 = st.columns([1, 1, 3, 1])
+                        with c_b2:
+                            if st.button("<", key="prev_top", help="Previous Page"):
+                                    if st.session_state.card_page > 1:
+                                        st.session_state.card_page -= 1
+                                        st.rerun()
+                        with c_b3:
+                                st.markdown(f"<div style='text-align:center; padding-top:10px;'>{st.session_state.card_page} / {total_pages}</div>", unsafe_allow_html=True)
+                        with c_b4:
+                            if st.button(">", key="next_top", help="Next Page"):
+                                    if st.session_state.card_page < total_pages:
+                                        st.session_state.card_page += 1
+                                        st.rerun()
         else:
             st.info(T["No Signals"])
 
@@ -366,49 +402,57 @@ def render_main_content(page, df_cards, reports, T, is_ko, all_industries, all_t
         with c_left:
             st.markdown(f"""
 <div style="background:white; padding:32px; border-radius:16px; border:1px solid var(--border-color); height:100%;">
-    <h3 style="color:var(--accent-primary) !important; margin-bottom:24px;">{T['Funnel Title']}</h3>
-    <div style="display:flex; gap:16px; margin-bottom:24px;">
-        <div style="min-width:32px; height:32px; background:#EFF6FF; color:var(--accent-primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">1</div>
-        <div>
-            <div style="font-weight:700; color:var(--text-primary); margin-bottom:4px;">{T['Funnel_Step1_Title']}</div>
-            <div style="font-size:0.9rem; color:var(--text-secondary); line-height:1.5;">{T['Funnel_Step1_Desc']}</div>
-        </div>
-    </div>
-    <div style="display:flex; gap:16px; margin-bottom:24px;">
-        <div style="min-width:32px; height:32px; background:#EFF6FF; color:var(--accent-primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">2</div>
-        <div>
-            <div style="font-weight:700; color:var(--text-primary); margin-bottom:4px;">{T['Funnel_Step2_Title']}</div>
-            <div style="font-size:0.9rem; color:var(--text-secondary); line-height:1.5;">{T['Funnel_Step2_Desc']}</div>
-        </div>
-    </div>
-    <div style="display:flex; gap:16px;">
-        <div style="min-width:32px; height:32px; background:#EFF6FF; color:var(--accent-primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">3</div>
-        <div>
-            <div style="font-weight:700; color:var(--text-primary); margin-bottom:4px;">{T['Funnel_Step3_Title']}</div>
-            <div style="font-size:0.9rem; color:var(--text-secondary); line-height:1.5;">{T['Funnel_Step3_Desc']}</div>
-        </div>
-    </div>
+<h3 style="color:var(--accent-primary) !important; margin-bottom:24px;">{T['Funnel Title']}</h3>
+<!-- Step 1 -->
+<div style="display:flex; gap:16px; margin-bottom:24px;">
+<div style="min-width:32px; height:32px; background:#EFF6FF; color:var(--accent-primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">1</div>
+<div>
+<div style="font-weight:700; color:var(--text-primary); margin-bottom:4px;">{T['Funnel_Step1_Title']}</div>
+<div style="font-size:0.9rem; color:var(--text-secondary); line-height:1.5;">{T['Funnel_Step1_Desc']}</div>
+<div style="margin-top:8px; display:inline-block; background:#F1F5F9; padding:4px 8px; border-radius:4px; font-size:0.75rem; color:#475569; font-weight:600;">{T['Funnel_Step1_Value']}</div>
+<div style="font-size:0.75rem; color:#64748B; margin-top:4px;">{T['Data_Source_Reliability']}</div>
+</div>
+</div>
+<!-- Step 2 -->
+<div style="display:flex; gap:16px; margin-bottom:24px;">
+<div style="min-width:32px; height:32px; background:#EFF6FF; color:var(--accent-primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">2</div>
+<div>
+<div style="font-weight:700; color:var(--text-primary); margin-bottom:4px;">{T['Funnel_Step2_Title']}</div>
+<div style="font-size:0.9rem; color:var(--text-secondary); line-height:1.5;">{T['Funnel_Step2_Desc']}</div>
+<div style="margin-top:8px; font-size:0.8rem; color:#DC2626; font-weight:600;">{T['Funnel_Step2_Value']}</div>
+<div style="font-size:0.8rem; color:#475569; margin-top:4px;">{T['Funnel_Step2_Criteria']}</div>
+</div>
+</div>
+<!-- Step 3 -->
+<div style="display:flex; gap:16px;">
+<div style="min-width:32px; height:32px; background:#EFF6FF; color:var(--accent-primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">3</div>
+<div>
+<div style="font-weight:700; color:var(--text-primary); margin-bottom:4px;">{T['Funnel_Step3_Title']}</div>
+<div style="font-size:0.9rem; color:var(--text-secondary); line-height:1.5;">{T['Funnel_Step3_Desc']}</div>
+<div style="margin-top:8px; display:inline-block; background:#DCFCE7; padding:4px 8px; border-radius:4px; font-size:0.75rem; color:#166534; font-weight:600;">{T['Funnel_Step3_Value']}</div>
+</div>
+</div>
 </div>
 """, unsafe_allow_html=True)
             
         with c_right:
             st.markdown(f"""
 <div style="background:#0F172A; padding:32px; border-radius:16px; height:100%; color:white;">
-    <div style="margin-bottom:24px;">
-        <span style="color:var(--accent-light) !important; font-size:1.5rem; font-weight:700; font-family:'Inter', sans-serif;">{T['Benchmark Title']}</span>
-    </div>
-    <div style="border-left:2px solid #334155; padding-left:24px; margin-left:8px; padding-bottom:32px; position:relative;">
-        <div style="position:absolute; left:-7px; top:0; width:12px; height:12px; background:#3B82F6; border-radius:50%;"></div>
-        <div style="font-size:1.5rem; font-weight:bold; color:white; margin-bottom:4px;">80 - 100</div>
-        <div style="font-size:0.75rem; font-weight:bold; color:#3B82F6; letter-spacing:0.1em; margin-bottom:8px;">{T['Bench_High_Label']}</div>
-        <div style="font-size:0.9rem; color:#94A3B8; line-height:1.5;">{T['Bench_High_Desc']}</div>
-    </div>
-    <div style="border-left:2px solid #334155; padding-left:24px; margin-left:8px; position:relative;">
-        <div style="position:absolute; left:-7px; top:0; width:12px; height:12px; background:#64748B; border-radius:50%;"></div>
-        <div style="font-size:1.5rem; font-weight:bold; color:white; margin-bottom:4px;">50 - 79</div>
-        <div style="font-size:0.75rem; font-weight:bold; color:#94A3B8; letter-spacing:0.1em; margin-bottom:8px;">{T['Bench_Mid_Label']}</div>
-        <div style="font-size:0.9rem; color:#94A3B8; line-height:1.5;">{T['Bench_Mid_Desc']}</div>
-    </div>
+<div style="margin-bottom:24px;">
+<span style="color:var(--accent-light) !important; font-size:1.5rem; font-weight:700; font-family:'Inter', sans-serif;">{T['Benchmark Title']}</span>
+</div>
+<div style="border-left:2px solid #334155; padding-left:24px; margin-left:8px; padding-bottom:32px; position:relative;">
+<div style="position:absolute; left:-7px; top:0; width:12px; height:12px; background:#3B82F6; border-radius:50%;"></div>
+<div style="font-size:1.5rem; font-weight:bold; color:white; margin-bottom:4px;">80 - 100</div>
+<div style="font-size:0.75rem; font-weight:bold; color:#3B82F6; letter-spacing:0.1em; margin-bottom:8px;">{T['Bench_High_Label']}</div>
+<div style="font-size:0.9rem; color:#94A3B8; line-height:1.5;">{T['Bench_High_Desc']}</div>
+</div>
+<div style="border-left:2px solid #334155; padding-left:24px; margin-left:8px; position:relative;">
+<div style="position:absolute; left:-7px; top:0; width:12px; height:12px; background:#64748B; border-radius:50%;"></div>
+<div style="font-size:1.5rem; font-weight:bold; color:white; margin-bottom:4px;">50 - 79</div>
+<div style="font-size:0.75rem; font-weight:bold; color:#94A3B8; letter-spacing:0.1em; margin-bottom:8px;">{T['Bench_Mid_Label']}</div>
+<div style="font-size:0.9rem; color:#94A3B8; line-height:1.5;">{T['Bench_Mid_Desc']}</div>
+</div>
 </div>
 """, unsafe_allow_html=True)
 
