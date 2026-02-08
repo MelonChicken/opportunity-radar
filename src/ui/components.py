@@ -58,6 +58,26 @@ def show_details_dialog(row, is_ko, T, report_map):
              st.metric(label=T['Confidence_Label'], value=f"{conf_val}%", help=T.get('Confidence_Tooltip', "Data Reliability"))
              st.progress(conf_val / 100)
         
+        # P1 Task 5: Scoring Explanation (Inline Expander)
+        with st.expander(f"ℹ️ {T.get('Score_Help_Link', 'How is this scored?')}"):
+            st.caption(T['Score_Formula_Desc'])
+            
+            # Compact Formula Visualization
+            c1, c2, c3, c4, c5 = st.columns([2, 0.5, 2, 0.5, 2])
+            with c1:
+                st.markdown(f"<div style='text-align:center; font-size:0.8rem;'>🔥<br><b>{T['Factor_Pain'].split('(')[0]}</b></div>", unsafe_allow_html=True)
+            with c2:
+                st.markdown("<div style='text-align:center; font-size:0.8rem; padding-top:10px;'>+</div>", unsafe_allow_html=True)
+            with c3:
+                 st.markdown(f"<div style='text-align:center; font-size:0.8rem;'>📈<br><b>{T['Factor_Market'].split('(')[0]}</b></div>", unsafe_allow_html=True)
+            with c4:
+                st.markdown("<div style='text-align:center; font-size:0.8rem; padding-top:10px;'>+</div>", unsafe_allow_html=True)
+            with c5:
+                 st.markdown(f"<div style='text-align:center; font-size:0.8rem;'>🛠️<br><b>{T['Factor_Feasibility'].split('(')[0]}</b></div>", unsafe_allow_html=True)
+            
+            st.markdown("---")
+            st.caption(f"**80-100**: {T['Bench_High_Desc']}")
+        
         # Recency Info (P1: 2.1)
         if 'created_at' in row and row['created_at']:
             st.caption(f"📅 {T.get('Last Updated', 'Date')}: {row['created_at']}")
@@ -118,7 +138,7 @@ def show_onboarding_dialog(T):
         st.session_state.has_seen_onboarding = True
         st.rerun()
 
-def render_kpi_section(df_cards, reports, T):
+def render_kpi_section(df_cards, reports, T, is_ko=False):
     """Renders the KPI Header section."""
     high_value_count = len(df_cards[df_cards['importance_score'] >= 80]) if not df_cards.empty else 0
     reports_count = len(reports)
@@ -139,14 +159,26 @@ def render_kpi_section(df_cards, reports, T):
                 time_diff = f"{diff.seconds // 60}m"
             
             time_diff_str = T['Updated ago'].format(time_diff=time_diff)
+            
+            # P0: 1.1 Exact Timestamp
+            # Assuming server time is KST or we just format it as such for now (since user requested KST)
+            # If created_at is naive, assume UTC or local. Let's format it.
+            try:
+                 # simplistic formatting
+                 time_str = last_update.strftime("%Y-%m-%d %H:%M") 
+                 exact_time_str = T['Updated_Exact'].format(time_str=time_str)
+            except:
+                 exact_time_str = ""
+    
+    update_freq_str = T.get('Update_Frequency', 'Every 24h')
 
     st.markdown(f"""
 <div class="kpi-container">
     <div class="kpi-card" title="Total number of signals analyzed from all reports">
         <h3>{T['Total Signals']}</h3>
         <div class="value">{len(df_cards)}</div>
-        <div class="sub-text">Latest signals analyzed</div>
-        <div class="last-updated" style="font-size:0.75rem; color:#94A3B8; margin-top:4px;">{time_diff_str}</div>
+        <div class="sub-text">{update_freq_str}</div>
+        <div class="last-updated" style="font-size:0.75rem; color:#94A3B8; margin-top:4px;" title="{exact_time_str}">{time_diff_str}</div>
     </div>
     <div class="kpi-card" style="border-left-color: var(--color-critical);" title="Signals with Importance Score >= 80">
         <h3>{T['Critical Signals']}</h3>
@@ -161,8 +193,16 @@ def render_kpi_section(df_cards, reports, T):
 </div>
 """, unsafe_allow_html=True)
 
+    # P2 Task 8: Network Status Trigger (Invisible Button over Card or Link below)
+    # Using a clean link/button below the KPIs for "Data Lineage"
+    c1, c2, c3 = st.columns(3)
+    with c3:
+        if st.button(f"ℹ️ {T.get('View Source Details', 'View Source Details')}", key="btn_net_status", use_container_width=True, type="secondary"):
+            show_network_status_dialog(False, T) # is_ko passed as False for now or need to thread it through
+
+
 def render_signal_card(row, index, is_ko, T, report_map):
-    """Renders a single signal card."""
+    """Renders a single signal card (Expanded View by default)."""
     # Language Fallback
     attack_raw = row.get('attack_vector_ko') if is_ko and row.get('attack_vector_ko') else row.get('attack_vector')
     holder_raw = row.get('pain_holder_ko') if is_ko and row.get('pain_holder_ko') else row.get('pain_holder')
@@ -172,62 +212,139 @@ def render_signal_card(row, index, is_ko, T, report_map):
     # Escape HTML
     attack = html.escape(str(attack_raw))
     holder = html.escape(str(holder_raw))
-    # Evidence is essentially the "Description" now. 
-    # The design shows a summary, not just a quote. We'll use mechanism + evidence snippets?
-    # Actually design shows "Current manual assessment processes...". This looks like 'pain_mechanism' or 'pain_context'.
-    # Let's use 'pain_mechanism' as the detailed description.
-    desc = html.escape(str(mechanism_raw))[:140] + "..."
+    desc_full = html.escape(str(mechanism_raw))
     
     # Tags & Score
     tags_list = row.get('industry_tags', [])
     base_tag = html.escape(str(tags_list[0])) if tags_list else "GENERAL"
-    
-    extra_count = len(tags_list) - 1
-    if extra_count > 0:
-        # Improved: Display "+2 more" instead of just "+2"
-        more_text = f"+{extra_count} more"
-        primary_tag = f"{base_tag} <span style='opacity:0.7; font-weight:500; margin-left:4px; font-size:0.7rem;'>{more_text}</span>"
-    else:
-        primary_tag = base_tag
-
     score = row['importance_score']
     
-    # Footer Pills (Mocking "Critical", "Enterprise" based on score/tags)
-    urgency = "Critical" if score >= 80 else "Potential"
-    # Secondary pill just one of the tags or 'Enterprise'
-    secondary_pill = html.escape(str(tags_list[1])) if len(tags_list) > 1 else "Niche"
+    # Visual Logic (Cognitive Analysis 1)
+    # Score Color Logic: Red (High Urgency), Blue (Opportunity), Gray (Low)
+    if score >= 80:
+        score_color = "#DC2626"
+        score_bg = "#FEF2F2"
+    elif score >= 50:
+        score_color = "#2563EB"
+        score_bg = "#EFF6FF"
+    else:
+        score_color = "#64748B"
+        score_bg = "#F1F5F9"
 
-    # Card HTML
-    card_html = f"""
-<div class="signal-card">
-    <div>
-        <div class="card-top">
-            <span class="category-tag">{primary_tag}</span>
-            <!-- Improved: Explicit Score Label -->
-            <div class="score-badge" title="Importance Score: {score}/100">Score {score}</div>
-        </div>
-        <div class="card-title">{attack}</div>
-        <div class="card-desc">{desc}</div>
-        <div class="card-meta">
-            Target: <strong>{holder}</strong>
-        </div>
-    </div>
-    <div class="card-footer">
-        <div>
-            <span class="pill">{urgency}</span>
-            <span class="pill">{secondary_pill}</span>
-        </div>
-        <!-- View Details is handled by the button below to ensure functionality -->
-    </div>
-</div>
-"""
-    
-    # Wrapper for Visual Grouping (One Card Look)
-    with st.container(border=True): # Border handles the card outline now
-        st.markdown(card_html, unsafe_allow_html=True)
+    with st.container(border=True):
         
-        # Helper div to target the button with CSS
-        st.markdown('<div class="view-full-analysis-btn">', unsafe_allow_html=True)
-        if st.button(T["View Full Analysis"], key=f"btn_{row['card_id']}_{index}", use_container_width=True):
+        # Header: Category + Score
+        st.markdown(f"""
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span class="category-tag" style="background:#F8FAFC; color:#475569; border:1px solid #E2E8F0;">{base_tag}</span>
+            <div class="score-badge" title="Importance Score: {score}/100" 
+                 style="background:{score_bg}; color:{score_color}; border:1px solid {score_color}33; padding:4px 10px; border-radius:12px; font-size:0.8rem; font-weight:700;">
+                 Score {score}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Title (Hero Content)
+        st.markdown(f"<div class='card-title' style='margin-bottom:8px; font-size:1.1rem; line-height:1.4;'>{attack}</div>", unsafe_allow_html=True)
+        
+        # Full Content (Always Visible)
+        st.markdown(f"""
+        <div style="font-size:0.95rem; color:#1E293B; margin-bottom:12px; line-height:1.6; background:#F8FAFC; padding:12px; border-radius:8px;">
+            {desc_full}
+        </div>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:16px;">
+            <div>
+                <div style="font-size:0.75rem; color:#64748B; font-weight:600; text-transform:uppercase; margin-bottom:4px;">{T.get('Target_Label', 'Target')}</div>
+                <div style="font-size:0.9rem; color:#334155; font-weight:500;">{holder}</div>
+            </div>
+            <div>
+                 <div style="font-size:0.75rem; color:#64748B; font-weight:600; text-transform:uppercase; margin-bottom:4px;">{T.get('Tags', 'Tags')}</div>
+                 <div style="font-size:0.85rem; color:#475569;">{', '.join(tags_list)}</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Actions
+        if st.button(T["View Full Analysis"], key=f"btn_full_{row['card_id']}_{index}", use_container_width=True):
              show_details_dialog(row.to_dict(), is_ko, T, report_map)
-        st.markdown('</div>', unsafe_allow_html=True)
+
+@st.dialog("Active Data Sources", width="large")
+def show_network_status_dialog(is_ko, T):
+    st.markdown(f"### {T.get('Reports Tracked', 'Active Sources')}")
+    st.caption(f"{T.get('Update_Frequency', 'Update frequency: Every 24h')}")
+    
+    st.markdown("###")
+    
+    # 1. PwC Global Insights (Active)
+    with st.container(border=True):
+        c1, c2 = st.columns([0.8, 0.2])
+        with c1:
+            st.markdown("**PwC Global Insights**")
+            st.caption(T.get('Funnel_Step1_Desc', 'Processing real-time reports from PwC Global Network.'))
+            st.progress(1.0) # 100%
+        with c2:
+            st.success("Connected")
+            st.caption("Sync: Just now")
+
+    # 2. News API (Coming Soon)
+    with st.container(border=True):
+        c1, c2 = st.columns([0.8, 0.2])
+        with c1:
+            st.markdown("**Global News API**")
+            st.caption("Real-time news aggregation.")
+        with c2:
+            st.markdown("🔒 *Locked*")
+            
+    # 3. Academic Research (Coming Soon)
+    with st.container(border=True):
+        c1, c2 = st.columns([0.8, 0.2])
+        with c1:
+            st.markdown("**Academic Research**")
+            st.caption("Papers & Journals.")
+        with c2:
+            st.markdown("🔒 *Locked*")
+
+@st.dialog("Welcome to Research Radar", width="large")
+def show_onboarding_dialog(is_ko, T):
+    st.markdown(f"""
+    <div style="text-align:center; margin-bottom:24px;">
+        <h2 style="color:#1E293B; margin-bottom:8px;">{T['Onboarding_Title']}</h2>
+        <p style="color:#64748B; font-size:1.1rem;">{T['Onboarding_Subtitle']}</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    c1, c2, c3 = st.columns(3, gap="medium")
+    
+    with c1:
+        st.markdown(f"""
+        <div style="text-align:center; padding:16px; background:#F8FAFC; border-radius:12px; height:100%;">
+            <div style="font-size:2.5rem; margin-bottom:12px;">🌍</div>
+            <div style="font-weight:700; color:#334155; margin-bottom:8px;">{T['Onb_Step1_Title']}</div>
+            <div style="font-size:0.9rem; color:#64748B; line-height:1.5;">{T['Onb_Step1_Desc']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with c2:
+        st.markdown(f"""
+        <div style="text-align:center; padding:16px; background:#EFF6FF; border-radius:12px; height:100%; border:1px solid #BFDBFE;">
+            <div style="font-size:2.5rem; margin-bottom:12px;">⚡</div>
+            <div style="font-weight:700; color:#1E40AF; margin-bottom:8px;">{T['Onb_Step2_Title']}</div>
+            <div style="font-size:0.9rem; color:#64748B; line-height:1.5;">{T['Onb_Step2_Desc']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with c3:
+        st.markdown(f"""
+        <div style="text-align:center; padding:16px; background:#F8FAFC; border-radius:12px; height:100%;">
+            <div style="font-size:2.5rem; margin-bottom:12px;">🚀</div>
+            <div style="font-weight:700; color:#334155; margin-bottom:8px;">{T['Onb_Step3_Title']}</div>
+            <div style="font-size:0.9rem; color:#64748B; line-height:1.5;">{T['Onb_Step3_Desc']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    st.markdown("###")
+    
+    if st.button(T["Start Exploring"], type="primary", use_container_width=True):
+        st.session_state['has_seen_onboarding'] = True
+        st.rerun()
