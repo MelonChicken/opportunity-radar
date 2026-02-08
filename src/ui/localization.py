@@ -17,7 +17,7 @@ def get_translations(is_ko: bool):
         "Advanced Filters": "Advanced Filters" if not is_ko else "상세 필터",
         "Show Admin": "Admin View" if not is_ko else "관리자 뷰",
         "No Signals": "No signals match your criteria." if not is_ko else "조건에 맞는 신호가 없습니다.",
-        "Footer": "Built with Streamlit & OpenAI" if not is_ko else "Streamlit & OpenAI 기반 제작",
+        "Footer": "Built with Streamlit & Antigravity" if not is_ko else "Streamlit & Antigravity 기반 제작",
         "Report Source": "Source Report" if not is_ko else "원본 리포트",
         
         # Admin / Pipeline
@@ -90,7 +90,7 @@ AI는 단순한 트렌드가 아닌 **실질적인 스타트업 사업 기회**�
         "Methodology Subtitle": "Our methodology for distilling millions of data points into actionable opportunities." if not is_ko else "수백만 개의 데이터 포인트에서 실행 가능한 기회를 추출하는 방법론입니다.",
         "Funnel Title": "The Selection Funnel" if not is_ko else "선별 깔때기 (Funnel)",
         "Funnel_Step1_Title": "Signal Aggregation" if not is_ko else "시그널 수집",
-        "Funnel_Step1_Desc": "Processing real-time reports from PwC Global Network, news, and academic research." if not is_ko else "PwC 글로벌 네트워크, 뉴스, 학술 연구의 실시간 리포트 처리.",
+        "Funnel_Step1_Desc": "Processing real-time reports from PwC Global Network." if not is_ko else "PwC 글로벌 네트워크의 실시간 리포트 처리.",
         "Funnel_Step2_Title": "Founder-Viability Filter" if not is_ko else "창업 타당성 필터",
         "Funnel_Step2_Desc": "Can a small team solve this? Is it technically feasible today?" if not is_ko else "소규모 팀으로 해결 가능한가? 기술적으로 구현 가능한가?",
         "Funnel_Step3_Title": "Criticality Scoring" if not is_ko else "중요도 채점",
@@ -104,6 +104,14 @@ AI는 단순한 트렌드가 아닌 **실질적인 스타트업 사업 기회**�
         "Quote Author": "— Research Radar Philosophy" if not is_ko else "— 리서치 레이더 철학",
         "Quick Filters": "Try" if not is_ko else "추천 검색어",
         
+        # P0: 2. Methodology Details
+        "Funnel_Step1_Value": "Inputs: 50,000+ Reports/Day" if not is_ko else "입력: 하루 50,000+ 리포트",
+        "Funnel_Step2_Value": "Filter: < 1% Pass Rate" if not is_ko else "필터: 통과율 1% 미만",
+        "Funnel_Step2_Criteria": "Criteria: Market Readiness, Founder Fit, Execution Barrier" if not is_ko else "**기준:** 시장 준비도, 창업가 적합성, 실행 장벽",
+        "Funnel_Step3_Value": "Output: ~10 Critical Signals" if not is_ko else "출력: ~10개의 핵심 신호",
+        "Validation_Process": "Validation Process details..." if not is_ko else "검증 프로세스 상세...",
+        "Data_Source_Reliability": "Source Reliability: PwC (100%)" if not is_ko else "출처 신뢰도: PwC (100%)",
+        
         # --- Phase 1 UX Improvements ---
         "View Full Analysis": "View Full Analysis" if not is_ko else "상세 분석 보기",
         "Updated ago": "Updated {time_diff} ago" if not is_ko else "마지막 업데이트: {time_diff} 전",
@@ -115,7 +123,7 @@ AI는 단순한 트렌드가 아닌 **실질적인 스타트업 사업 기회**�
         "Onboarding_Title": "Discover Market Opportunities" if not is_ko else "시장 기회를 발견하세요",
         "Onboarding_Subtitle": "3 steps to maximize your research efficiency" if not is_ko else "리서치 효율을 극대화하는 3가지 단계",
         "Onb_Step1_Title": "Global Scan" if not is_ko else "글로벌 스캔",
-        "Onb_Step1_Desc": "Analyzing reports from PwC, News, and Academia in real-time." if not is_ko else "PwC, 뉴스, 학술 논문을 실시간으로 분석합니다.",
+        "Onb_Step1_Desc": "Analyzing reports from PwC Global Network in real-time." if not is_ko else "PwC 글로벌 네트워크의 리포트를 실시간으로 분석합니다.",
         "Onb_Step2_Title": "Critical Signals" if not is_ko else "핵심 신호",
         "Onb_Step2_Desc": "Focus on signals with Importance Score 80+." if not is_ko else "중요도 점수 80점 이상의 신호에 집중하세요.",
         "Onb_Step3_Title": "Take Action" if not is_ko else "실행",
@@ -136,5 +144,29 @@ AI는 단순한 트렌드가 아닌 **실질적인 스타트업 사업 기회**�
         "Score_Tooltip": "Business Opportunity Value (0-100)" if not is_ko else "사업 기회 가치 (0-100)",
         "Confidence_Tooltip": "Data Source Reliability" if not is_ko else "데이터 소스 신뢰도",
         "Last Updated": "Last Updated" if not is_ko else "마지막 업데이트",
+         "Updated_Exact": "Last updated: {time_str} KST" if not is_ko else "마지막 업데이트: {time_str} KST",
+         "Update_Frequency": "Update frequency: Every 24h" if not is_ko else "업데이트 주기: 24시간마다",
+         "Show More": "Show More" if not is_ko else "더 보기",
+         "Show Less": "Show Less" if not is_ko else "접기",
+         
+         # P1: Search & Filter
+         "Search_Placeholder_New": "Search keywords (e.g. 'fraud', 'AI')..." if not is_ko else "키워드 검색 (예: '사기', 'AI')...",
+         "Filter_Result_Count": "Viewing {count} opportunities" if not is_ko else "{count} 개의 기회를 보고 있습니다",
+         "No_Results_Found": "No opportunities found matching your criteria." if not is_ko else "검색 조건에 맞는 기회가 없습니다.",
+         "Sort_Highest_Score": "Highest Score" if not is_ko else "높은 점수순",
+         "Target_Label": "Target" if not is_ko else "타겟",
+         
+         # P1: Scoring Explanation
+         "Score_Explanation_Title": "How we score opportunities" if not is_ko else "기회 점수 산정 방식",
+         "Score_Formula_Desc": "The Importance Score is a weighted average of three key factors:" if not is_ko else "중요도 점수는 세 가지 핵심 요소의 가중 평균입니다:",
+         "Score_Breakdown_Label": "Score Breakdown" if not is_ko else "점수 구성",
+         "Factor_Pain": "Pain Intensity (40%)" if not is_ko else "고통의 강도 (40%)",
+         "Factor_Market": "Market Size (30%)" if not is_ko else "시장 규모 (30%)",
+         "Factor_Feasibility": "Technical Feasibility (30%)" if not is_ko else "기술적 실현 가능성 (30%)",
+         "Score_Help_Link": "How is this scored?" if not is_ko else "점수 산정 방식 보기",
+         
+         # P2: Advanced Filters
+         "Filter_Label_Score_Range": "Importance Score Range" if not is_ko else "중요도 점수 범위",
+         "Filter_Apply_Button": "Apply Filters" if not is_ko else "필터 적용",
     }
     return T
