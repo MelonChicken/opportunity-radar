@@ -10,6 +10,7 @@ from src.storage import load_cards, load_reports
 from src.ui.styles import apply_styles
 from src.ui.localization import get_translations
 from src.ui.layout import render_sidebar, render_main_content
+from src.ui.components import show_onboarding_dialog
 from src.pipeline import run_pipeline
 
 # --- Page Configuration ---
@@ -42,6 +43,13 @@ def main():
     # --- Localization ---
     is_ko = st.session_state.language == "한국어"
     T = get_translations(is_ko)
+
+    # Onboarding Logic
+    if 'has_seen_onboarding' not in st.session_state:
+        st.session_state.has_seen_onboarding = False
+        
+    if not st.session_state.has_seen_onboarding:
+        show_onboarding_dialog(is_ko, T)
 
     # --- Router ---
     # Admin page removed per user request.

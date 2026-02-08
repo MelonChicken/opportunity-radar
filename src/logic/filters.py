@@ -1,8 +1,8 @@
 import pandas as pd
 
-def filter_dataframe(df: pd.DataFrame, search_query: str, selected_industries: list, selected_techs: list, min_score: int) -> pd.DataFrame:
+def filter_dataframe(df: pd.DataFrame, search_query: str, selected_industries: list, selected_techs: list, score_range: tuple) -> pd.DataFrame:
     """
-    Filters the cards dataframe based on search query, industries, technologies, and score.
+    Filters the cards dataframe based on search query, industries, technologies, and score range.
     """
     if df.empty:
         return df
@@ -41,8 +41,13 @@ def filter_dataframe(df: pd.DataFrame, search_query: str, selected_industries: l
             lambda x: any(t in x for t in selected_techs) if isinstance(x, list) else False
         )]
         
-    if min_score > 0:
-        filtered_df = filtered_df[filtered_df['importance_score'] >= min_score]
+    # 3. Score Range Filter
+    if score_range:
+        min_s, max_s = score_range
+        filtered_df = filtered_df[
+            (filtered_df['importance_score'] >= min_s) & 
+            (filtered_df['importance_score'] <= max_s)
+        ]
         
     return filtered_df
 
