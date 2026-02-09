@@ -10,11 +10,11 @@ def render_sidebar():
     with st.sidebar:
         # Custom Logo Area
         st.markdown("""
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom: 20px;">
-            <div style="width:32px; height:32px; background-color: #2563EB; border-radius:6px; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">R</div>
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-icon">R</div>
             <div>
-                <div style="font-weight:700; color:white; font-size:1.1rem;">Research Radar</div>
-                <div style="font-size:0.7rem; color:#6B7280;">Opportunity Discovery Platform</div>
+                <div class="sidebar-brand">Research Radar</div>
+                <div class="sidebar-tagline">Opportunity Discovery Platform</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -42,9 +42,9 @@ def render_sidebar():
                 # Active State (Blue Pill) - HTML allows SVG
                 # Adjusted alignment to match the column layout of inactive state roughly
                 label_html = f"""
-                <div class="nav-active" style="display:flex; align-items:center; gap:12px; padding-left:12px;">
-                    <span style="display:flex; align-items:center; width:20px; justify-content:center;">{svg}</span>
-                    <span style="padding-top:2px;">{item}</span>
+                <div class="nav-active flex gap-12">
+                    <span class="nav-icon">{svg}</span>
+                    <span class="nav-text">{item}</span>
                 </div>
                 """
                 st.markdown(label_html, unsafe_allow_html=True)
@@ -59,6 +59,7 @@ def render_sidebar():
                     st.markdown(f"<div style='margin-top:6px; display:flex; justify-content:center; opacity:0.7;'>{svg}</div>", unsafe_allow_html=True)
                 with c_btn:
                      if st.button(item, key=f"nav_{item}", use_container_width=True):
+                        st.session_state.has_seen_onboarding = True
                         st.session_state.nav_page = item
                         st.rerun()
         
@@ -80,11 +81,11 @@ def render_sidebar():
         
         # Network Integration (Mock)
         st.markdown("""
-        <div style="background:#1E293B; padding:12px; border-radius:8px; margin-top:20px;">
-            <div style="font-size:0.7rem; color:#6B7280; margin-bottom:8px; font-weight:bold;">NETWORK INTEGRATION</div>
-            <div style="display:flex; gap:8px;">
-                <span style="background:#334155; padding:2px 6px; border-radius:4px; font-size:0.65rem;">PwC Insights</span>
-                <span style="background:#334155; padding:2px 6px; border-radius:4px; font-size:0.65rem;">OpenAI</span>
+        <div class="network-integration">
+            <div class="network-header">NETWORK INTEGRATION</div>
+            <div class="network-badges">
+                <span class="network-badge">PwC Insights</span>
+                <span class="network-badge">OpenAI</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -103,8 +104,8 @@ def render_main_content(page, df_cards, reports, T, is_ko, all_industries, all_t
         # Header Area
         st.markdown(f"""
         <div>
-            <h1 style="font-size: 2rem; margin-bottom: 8px;">{T['Dashboard Title']}</h1>
-            <p style="color: var(--text-secondary); margin-bottom: 32px;">{T['Dashboard Subtitle']}</p>
+            <h1 class="page-header-title">{T['Dashboard Title']}</h1>
+            <p class="page-header-subtitle">{T['Dashboard Subtitle']}</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -249,31 +250,44 @@ def render_main_content(page, df_cards, reports, T, is_ko, all_industries, all_t
         c1, c2, c3 = st.columns([3, 1, 1], gap="small")
         
         with c1:
-            # Cognitive Analysis: Better Placeholder
-            search_query = st.text_input("Search", placeholder=T.get("Search_Placeholder_New", T["Search Placeholder"]), label_visibility="collapsed", key="feed_search")
-            
-            # Cognitive Analysis: Chips for "Try:" section
+            # Cognitive Analysis: Chips for "Popular Searches" section (Single-line, responsive)
             q_tags = ["Fraud Detection", "Climate Risk", "Legal AI", "Supply Chain"] if not is_ko else ["사기 탐지", "기후 리스크", "법률 AI", "공급망"]
-            
-            # Helper to create chip-like buttons using custom CSS or just columns
-            # Using columns for now as Streamlit native buttons are limited in style without extra hacks
-            st.markdown(f"<div style='margin-top:8px; margin-bottom:8px; display:flex; align-items:center; gap:8px;'>", unsafe_allow_html=True)
-            st.markdown(f"<span style='font-size:0.85rem; color:#64748B; margin-right:4px;'>{T.get('Quick Filters', 'Try')}:</span>", unsafe_allow_html=True)
-            
-            # Callback safely updates state
-            def set_search_query(q):
-                st.session_state.feed_search = q
 
-            # We render buttons horizontally. 
-            # Note: Streamlit buttons inside markdown is tricky. We'll use columns below the text label.
-            st.markdown("</div>", unsafe_allow_html=True)
+            # Callbacks for bidirectional sync
+            def on_pill_change():
+                if st.session_state.filter_pills:
+                    st.session_state.feed_search = st.session_state.filter_pills
+                else:
+                    st.session_state.feed_search = ""
+
+            def on_search_change():
+                # Deselect pills if user types manually something that doesn't match
+                if st.session_state.feed_search not in q_tags:
+                    st.session_state.filter_pills = None
             
-            # Chip Row
-            chip_cols = st.columns([1, 1, 1, 1, 3]) # Adjust ratios to fit
-            for i, tag in enumerate(q_tags):
-                 if i < 4:
-                     # Use type="secondary" for a softer look (if theme supports it, else default)
-                     chip_cols[i].button(tag, key=f"qtag_{i}", on_click=set_search_query, args=(tag,), use_container_width=True)
+            # Cognitive Analysis: Better Placeholder
+            search_query = st.text_input("Search", 
+                                       placeholder=T.get("Search_Placeholder_New", T["Search Placeholder"]), 
+                                       label_visibility="collapsed", 
+                                       key="feed_search",
+                                       on_change=on_search_change)
+            
+            # Use Native Streamlit Pills (v1.40+) for robust interaction
+            # Force CSS for pills in dark mode (Standardized Module)
+            from src.ui.styles.chips import load_chips_css
+            st.markdown(f"<style>{load_chips_css()}</style>", unsafe_allow_html=True)
+            
+            # Task 1.1: Rename "Try:" to "Popular Searches" and add tooltip interaction
+            st.markdown(f"""
+            <div class="chip-container" style="display:flex; align-items:center; gap:8px; margin-top:12px; margin-bottom:4px;">
+                <span class="chip-container-label" style="font-size:0.85rem; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">
+                    🔥 {T.get('Popular Searches', 'Popular Searches')}:
+                </span>
+                <span style="font-size:0.8rem; color:#94A3B8; cursor:help;" title="Click tags to quickly filter opportunities">ℹ️</span>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.pills("Popular Searches", q_tags, selection_mode="single", key="filter_pills", label_visibility="collapsed", on_change=on_pill_change)
             
         with c2:
             # Sort Logic: Added Highest Score
@@ -301,28 +315,45 @@ def render_main_content(page, df_cards, reports, T, is_ko, all_industries, all_t
                 af1, af2, af3 = st.columns([2, 2, 1], gap="medium")
                 
                 with af1:
+                    # Task 1.2 & 1.3: Multi-select implementation with search (Streamlit default)
                     st.caption(f"**{T['Industry']} & {T['Technology']}**")
-                    selected_industries = st.multiselect(T["Industry"], sorted(list(all_industries)), label_visibility="collapsed", placeholder=f"Select {T['Industry']}...")
-                    selected_techs = st.multiselect(T["Technology"], sorted(list(all_techs)), label_visibility="collapsed", placeholder=f"Select {T['Technology']}...")
+                    selected_industries = st.multiselect(T["Industry"], sorted(list(all_industries)), placeholder=f"Select {T['Industry']}...", key="filter_industry")
+                    selected_techs = st.multiselect(T["Technology"], sorted(list(all_techs)), placeholder=f"Select {T['Technology']}...", key="filter_tech")
                 
                 with af2:
                     st.caption(f"**{T.get('Filter_Label_Score_Range', 'Score Range')}**")
                     score_range = st.slider(T.get('Filter_Label_Score_Range', 'Score Range'), 0, 100, (50, 100), label_visibility="collapsed")
                     
-                    # Future: Date Range or Confidence Range here
+                    st.caption(f"**{T.get('Filter_Label_Date_Range', 'Date Range')}**")
+                    # Task 3.1: Date Range Filter
+                    # default to last 30 days
+                    today = pd.Timestamp.now().date()
+                    month_ago = today - pd.Timedelta(days=30)
+                    date_range = st.date_input(
+                        T.get('Date Range', 'Date Range'),
+                        value=(month_ago, today),
+                        max_value=today,
+                        format="YYYY-MM-DD",
+                        label_visibility="collapsed",
+                        key="filter_date_range"
+                    )
                 
                 with af3:
                     st.caption(f"**{T.get('Actions', 'Actions')}**")
                     if st.button(T["Reset"], type="secondary", use_container_width=True):
                         st.session_state.feed_search = ""
+                        st.session_state.filter_industry = []
+                        st.session_state.filter_tech = []
+                        st.session_state.filter_pills = None
+                        # Reset date range (optional, Streamlit state handles key reset somewhat)
                         st.rerun()
                 
                 st.markdown("---")
                 
         # Filtering Logic
         if not df_cards.empty:
-            # Apply Filters (Updated for Range)
-            filtered_df = filter_dataframe(df_cards, search_query, selected_industries, selected_techs, score_range)
+            # Apply Filters (Updated for Range and Multi-select and Date)
+            filtered_df = filter_dataframe(df_cards, search_query, selected_industries, selected_techs, score_range, date_range if show_advanced and 'date_range' in locals() else None)
             
             # Sort Logic
             if sort_selection in ["Importance", "Highest Score", "높은 점수순", "중요도순"] and 'importance_score' in filtered_df.columns:
@@ -334,15 +365,18 @@ def render_main_content(page, df_cards, reports, T, is_ko, all_industries, all_t
             st.markdown(f"<div style='margin-bottom:16px; font-size:1.1rem; color:#334155;'>{T['Filter_Result_Count'].format(count=len(filtered_df))}</div>", unsafe_allow_html=True)
 
             # Phase 1: Active Filter Chips
+            # We need to update render_active_filters to accept date_range if we want to show it, 
+            # but for now we'll stick to basic signature or update it if needed.
+            # Let's check components.py later. For now pass basic args.
             render_active_filters(search_query, selected_industries, selected_techs, score_range, T)
 
             if filtered_df.empty:
                  # Empty State
                  st.markdown(f"""
-                 <div style="text-align:center; padding:40px; background:#F8FAFC; border-radius:12px; border:1px dashed #CBD5E1;">
-                     <div style="font-size:2rem; margin-bottom:10px;">🔍</div>
-                     <h3 style="color:#64748B;">{T.get('No_Results_Found', 'No results found.')}</h3>
-                     <p style="color:#94A3B8;">Try adjusting your filters or search terms.</p>
+                 <div class="empty-state">
+                     <div class="empty-state-icon">🔍</div>
+                     <h3 class="empty-state-title">{T.get('No_Results_Found', 'No results found.')}</h3>
+                     <p class="empty-state-text">Try adjusting your filters or search terms.</p>
                  </div>
                  """, unsafe_allow_html=True)
             else:

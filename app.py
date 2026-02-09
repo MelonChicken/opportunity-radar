@@ -28,7 +28,7 @@ def main():
     if 'language' not in st.session_state:
         st.session_state.language = "English"
         
-    # --- Onboarding State ---
+    # --- Onboarding State (Initialize only once) ---
     if 'has_seen_onboarding' not in st.session_state:
         st.session_state.has_seen_onboarding = False
 
@@ -44,10 +44,7 @@ def main():
     is_ko = st.session_state.language == "한국어"
     T = get_translations(is_ko)
 
-    # Onboarding Logic
-    if 'has_seen_onboarding' not in st.session_state:
-        st.session_state.has_seen_onboarding = False
-        
+    # Show onboarding dialog only on first visit
     if not st.session_state.has_seen_onboarding:
         show_onboarding_dialog(is_ko, T)
 
