@@ -1,5 +1,7 @@
 import pandas as pd
+import streamlit as st
 
+@st.cache_data(ttl=60)  # Cache for 60 seconds for real-time filter performance
 def filter_dataframe(df: pd.DataFrame, search_query: str, selected_industries: list, selected_techs: list, score_range: tuple) -> pd.DataFrame:
     """
     Filters the cards dataframe based on search query, industries, technologies, and score range.
@@ -72,8 +74,40 @@ def sort_dataframe(df: pd.DataFrame, sort_option: str, T: dict) -> pd.DataFrame:
          
     return sorted_df
 
+def get_virtual_window(df: pd.DataFrame, scroll_index: int, window_size: int = 20):
+    """
+    Returns a subset of dataframe for virtual scrolling (infinite scroll performance optimization).
+    
+    Args:
+        df: The full filtered dataframe
+        scroll_index: Current scroll position index
+        window_size: Number of items to render simultaneously (default: 20)
+    
+    Returns:
+        Tuple of (windowed_df, start_idx, end_idx, total_items)
+    """
+    total_items = len(df)
+    
+    if total_items == 0:
+        return df, 0, 0, 0
+    
+    # Center the window around scroll_index
+    half_window = window_size // 2
+    start_idx = max(0, scroll_index - half_window)
+    end_idx = min(total_items, start_idx + window_size)
+    
+    # Adjust start if we're at the end
+    if end_idx - start_idx < window_size and total_items >= window_size:
+        start_idx = max(0, end_idx - window_size)
+    
+    window_df = df.iloc[start_idx:end_idx]
+    
+    return window_df, start_idx, end_idx, total_items
+
+
 def paginate_dataframe(df: pd.DataFrame, current_page: int, items_per_page: int):
     """
+    DEPRECATED: Use get_virtual_window() for infinite scroll instead.
     Returns the subset of dataframe for the current page and pagination metadata.
     """
     total_items = len(df)

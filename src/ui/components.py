@@ -32,7 +32,7 @@ def show_details_dialog(row, is_ko, T, report_map):
     # The Prompt Template is internal logic, so English is usually fine, but the user views it.
     prompt_text = build_prompt_from_card(row, report_url)
 
-    left, right = st.columns([1.1, 1.9], gap="large")
+    left, right = st.columns([1.1, 1.9], gap="medium")
 
     with left:
         st.markdown(f"### {T['Target_Label']}")
@@ -80,18 +80,67 @@ def show_details_dialog(row, is_ko, T, report_map):
         
         # Recency Info (P1: 2.1)
         if 'created_at' in row and row['created_at']:
-            st.caption(f"📅 {T.get('Last Updated', 'Date')}: {row['created_at']}")
+            st.caption(f"📅 {row['created_at']}")
         
+        # Phase 2: Potential Value Section (Compact)
+        st.markdown(f"**{T['Potential_Value_Title']}**")
+        
+        has_value_data = any([
+            row.get('market_size'),
+            row.get('value_type'),
+            row.get('expected_impact'),
+            row.get('timeline')
+        ])
+        
+        if has_value_data:
+            if row.get('market_size'):
+                st.caption(f"📊 {row['market_size']}")
+            if row.get('value_type'):
+                st.caption(f"💰 {row['value_type']}")
+            if row.get('expected_impact'):
+                st.caption(f"📈 {row['expected_impact']}")
+            if row.get('timeline'):
+                st.caption(f"⏱️ {row['timeline']}")
+        else:
+            st.caption(T.get('No_Value_Data', 'Value metrics not available.'))
+        
+        #Phase 2: Enhanced Source Information
         st.markdown("---")
-        st.markdown(f"**{T['Report ID']}:** {row['report_id']}")
-        st.write(f"[{T['Report Source']}]({report_url})")
+        st.markdown(f"**{T.get('Report_Title', 'Source Report')}**")
+        
+        # Publisher Badge + Date
+        st.markdown(f"""
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+            <div style="background:#EFF6FF; color:#2563EB; padding:4px 12px; border-radius:12px; font-size:0.8rem; font-weight:700;">
+                {report.source if report else "Unknown"}
+            </div>
+            <span style="color:#64748B; font-size:0.85rem;">
+                {report.published_at.strftime('%Y-%m-%d') if report else row['report_id']}
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Report Title
+        if report:
+            report_title = report.title_ko if is_ko and report.title_ko else report.title
+            st.caption(report_title)
+            
+            # Enhanced CTA Button
+            st.link_button(
+                f"📄 {T['View_Source_Report']} →",
+                report.url,
+                use_container_width=True,
+                type="secondary"
+            )
+        else:
+            st.caption(f"{T['Report ID']}: {row['report_id']}")
 
     with right:
         st.markdown(f"### {T['Evidence_Label']}")
         st.info(evidence)
         
         st.markdown(f"### {T['Prompt Title']}")
-        with st.container(height=220):
+        with st.container(height=140):
             st.code(prompt_text, language="text")
 
         # Action Buttons
@@ -202,22 +251,33 @@ def render_kpi_section(df_cards, reports, T, is_ko=False):
 
 
 def render_signal_card(row, index, is_ko, T, report_map):
-    """Renders a single signal card (Expanded View by default)."""
+    """Renders a single signal card (Compact List View - Phase 1+2 Optimized)."""
     # Language Fallback
     attack_raw = row.get('attack_vector_ko') if is_ko and row.get('attack_vector_ko') else row.get('attack_vector')
     holder_raw = row.get('pain_holder_ko') if is_ko and row.get('pain_holder_ko') else row.get('pain_holder')
     evidence_raw = row.get('evidence_sentence_ko') if is_ko and row.get('evidence_sentence_ko') else row.get('evidence_sentence')
-    mechanism_raw = row.get('pain_mechanism_ko') if is_ko and row.get('pain_mechanism_ko') else row.get('pain_mechanism')
     
     # Escape HTML
     attack = html.escape(str(attack_raw))
     holder = html.escape(str(holder_raw))
-    desc_full = html.escape(str(mechanism_raw))
     
     # Tags & Score
     tags_list = row.get('industry_tags', [])
     base_tag = html.escape(str(tags_list[0])) if tags_list else "GENERAL"
     score = row['importance_score']
+    
+    # Top 2 tags for compact display
+    top_tags = tags_list[:2] if len(tags_list) >= 2 else tags_list
+    tags_display = ', '.join([html.escape(str(t)) for t in top_tags])
+    
+    # Phase 2: Evidence Preview (100 chars)
+    evidence_text = str(evidence_raw) if evidence_raw else ""
+    evidence_preview = evidence_text[:100] + "..." if len(evidence_text) > 100 else evidence_text
+    evidence_preview_escaped = html.escape(evidence_preview)
+    
+    # Phase 2: Publisher Badge
+    report = report_map.get(row.get('report_id'))
+    publisher = report.source if report else "Unknown"
     
     # Visual Logic (Cognitive Analysis 1)
     # Score Color Logic: Red (High Urgency), Blue (Opportunity), Gray (Low)
@@ -233,10 +293,15 @@ def render_signal_card(row, index, is_ko, T, report_map):
 
     with st.container(border=True):
         
-        # Header: Category + Score
+        # Header: Category Tag + Publisher + Score
         st.markdown(f"""
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <span class="category-tag" style="background:#F8FAFC; color:#475569; border:1px solid #E2E8F0;">{base_tag}</span>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <span class="category-tag" style="background:#F8FAFC; color:#475569; border:1px solid #E2E8F0;">{base_tag}</span>
+                <span style="background:#F1F5F9; color:#64748B; padding:4px 8px; border-radius:8px; font-size:0.7rem; font-weight:600;">
+                    {publisher}
+                </span>
+            </div>
             <div class="score-badge" title="Importance Score: {score}/100" 
                  style="background:{score_bg}; color:{score_color}; border:1px solid {score_color}33; padding:4px 10px; border-radius:12px; font-size:0.8rem; font-weight:700;">
                  Score {score}
@@ -247,27 +312,70 @@ def render_signal_card(row, index, is_ko, T, report_map):
         # Title (Hero Content)
         st.markdown(f"<div class='card-title' style='margin-bottom:8px; font-size:1.1rem; line-height:1.4;'>{attack}</div>", unsafe_allow_html=True)
         
-        # Full Content (Always Visible)
+        # Compact Metadata Grid (Single Row) - Phase 1 Optimization
         st.markdown(f"""
-        <div style="font-size:0.95rem; color:#1E293B; margin-bottom:12px; line-height:1.6; background:#F8FAFC; padding:12px; border-radius:8px;">
-            {desc_full}
-        </div>
-        
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:16px;">
+        <div style="display:flex; gap:16px; margin-bottom:8px; font-size:0.85rem; color:#64748B;">
             <div>
-                <div style="font-size:0.75rem; color:#64748B; font-weight:600; text-transform:uppercase; margin-bottom:4px;">{T.get('Target_Label', 'Target')}</div>
-                <div style="font-size:0.9rem; color:#334155; font-weight:500;">{holder}</div>
+                <span style="font-weight:600;">{T.get('Target_Label', 'Target')}:</span> 
+                <span style="color:#334155;">{holder}</span>
             </div>
             <div>
-                 <div style="font-size:0.75rem; color:#64748B; font-weight:600; text-transform:uppercase; margin-bottom:4px;">{T.get('Tags', 'Tags')}</div>
-                 <div style="font-size:0.85rem; color:#475569;">{', '.join(tags_list)}</div>
+                <span style="font-weight:600;">{T.get('Tags', 'Tags')}:</span> 
+                <span style="color:#334155;">{tags_display}</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
         
+        # Phase 2: Evidence Preview
+        if evidence_preview:
+            st.markdown(f"""
+            <div style="font-size:0.85rem; color:#64748B; margin-top:8px; margin-bottom:12px; padding:8px; background:#F8FAFC; border-left:3px solid #2563EB; border-radius:4px;">
+                <span style="font-weight:600; color:#475569;">💡 {T.get('Evidence_Preview', 'Evidence')}:</span><br>
+                <span style="font-style:italic; color:#1E293B; line-height:1.5;">{evidence_preview_escaped}</span>
+            </div>
+            """, unsafe_allow_html=True)
+        
         # Actions
         if st.button(T["View Full Analysis"], key=f"btn_full_{row['card_id']}_{index}", use_container_width=True):
              show_details_dialog(row.to_dict(), is_ko, T, report_map)
+
+
+def render_skeleton_card():
+    """Renders a skeleton loading card for infinite scroll."""
+    st.markdown("""
+    <div class="skeleton-card"></div>
+    """, unsafe_allow_html=True)
+
+
+def render_active_filters(search_query: str, selected_industries: list, selected_techs: list, score_range: tuple, T: dict, on_remove_callback=None):
+    """Displays active filters as removable chips below the filter bar."""
+    chips = []
+    
+    # Search Query Chip
+    if search_query:
+        chips.append(('search', f'🔍 "{search_query}"'))
+    
+    # Industry Chips
+    for ind in selected_industries:
+        chips.append(('industry', f'{T.get("Industry", "Industry")}: {ind}'))
+    
+    # Technology Chips
+    for tech in selected_techs:
+        chips.append(('tech', f'{T.get("Technology", "Technology")}: {tech}'))
+    
+    # Score Range Chip (only if not default 50-100)
+    if score_range != (50, 100):
+        chips.append(('score', f'{T.get("Score", "Score")}: {score_range[0]}-{score_range[1]}'))
+    
+    # Render chips
+    if chips:
+        st.markdown('<div class="active-filters">', unsafe_allow_html=True)
+        for chip_type, label in chips:
+            st.markdown(f'<span class="filter-chip">{label}</span>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+        return True
+    return False
+
 
 @st.dialog("Active Data Sources", width="large")
 def show_network_status_dialog(is_ko, T):

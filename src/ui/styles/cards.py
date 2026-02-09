@@ -146,4 +146,85 @@ def load_cards_css():
     .view-link:hover { 
         text-decoration: underline; 
     }
+    
+    /* Phase 1: Responsive Grid Layout for Signal Cards */
+    .signal-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    
+    /* Tablet: 2 columns */
+    @media (max-width: 1200px) {
+        .signal-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    /* Mobile: 1 column */
+    @media (max-width: 768px) {
+        .signal-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /* Phase 1: Skeleton Loading Animation */
+    .skeleton-card {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: skeleton-loading 1.5s ease-in-out infinite;
+        border-radius: var(--radius-md);
+        height: 180px;
+        border: 1px solid var(--border-color);
+    }
+    
+    @keyframes skeleton-loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+    
+    /* Phase 1: Compact Card Height */
+    .signal-card-compact {
+        min-height: 180px;
+        max-height: 200px;
+    }
+    
+    /* Phase 1: Filter Chips */
+    .active-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 12px 0;
+    }
+    
+    .filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #EFF6FF;
+        color: #2563EB;
+        border: 1px solid #BFDBFE;
+        border-radius: 16px;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .filter-chip button {
+        background: none;
+        border: none;
+        color: #2563EB;
+        font-size: 1.1rem;
+        cursor: pointer;
+        padding: 0;
+        margin-left: 4px;
+        line-height: 1;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+    
+    .filter-chip button:hover {
+        opacity: 1;
+    }
 """

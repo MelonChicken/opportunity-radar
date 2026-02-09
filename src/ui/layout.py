@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
-from src.ui.components import render_kpi_section, render_signal_card, show_details_dialog
-from src.logic.filters import filter_dataframe, sort_dataframe, paginate_dataframe
+from src.ui.components import render_kpi_section, render_signal_card, show_details_dialog, render_skeleton_card, render_active_filters
+from src.logic.filters import filter_dataframe, sort_dataframe, get_virtual_window
 
 def render_sidebar():
     """
@@ -333,9 +333,9 @@ def render_main_content(page, df_cards, reports, T, is_ko, all_industries, all_t
             # Active Filters Display & Result Count
             st.markdown(f"<div style='margin-bottom:16px; font-size:1.1rem; color:#334155;'>{T['Filter_Result_Count'].format(count=len(filtered_df))}</div>", unsafe_allow_html=True)
 
-            if search_query:
-                st.markdown(f'<span class="filter-chip" style="background:#EFF6FF; color:#2563EB; border:1px solid #BFDBFE;">🔍 "{search_query}"</span>', unsafe_allow_html=True)
-            
+            # Phase 1: Active Filter Chips
+            render_active_filters(search_query, selected_industries, selected_techs, score_range, T)
+
             if filtered_df.empty:
                  # Empty State
                  st.markdown(f"""
@@ -346,41 +346,47 @@ def render_main_content(page, df_cards, reports, T, is_ko, all_industries, all_t
                  </div>
                  """, unsafe_allow_html=True)
             else:
-                # Pagination
-                if 'card_page' not in st.session_state:
-                    st.session_state.card_page = 1
-                    
-                items_per_page = 6
-                page_df, total_pages, p_start, p_end = paginate_dataframe(filtered_df, st.session_state.card_page, items_per_page)
+                # Phase 1: Infinite Scroll with Virtual Scrolling
+                # Initialize scroll state
+                if 'scroll_loaded_count' not in st.session_state:
+                    st.session_state.scroll_loaded_count = 20  # Initial batch
                 
-                if st.session_state.card_page > total_pages:
-                        st.session_state.card_page = max(1, total_pages)
-                        page_df, total_pages, p_start, p_end = paginate_dataframe(filtered_df, st.session_state.card_page, items_per_page)
+                # Get virtual window (load progressively)
+                total_items = len(filtered_df)
+                items_to_show = min(st.session_state.scroll_loaded_count, total_items)
+                visible_df = filtered_df.head(items_to_show)
                 
-                # Card Rendering
-                cols = st.columns(2)
-                for i, (index, row) in enumerate(page_df.iterrows()):
-                    with cols[i % 2]:
-                        # Call Component to Render Card
+                # Phase 1: 3-Column Grid Layout (responsive via CSS)
+                # Using native streamlit columns with 3 columns
+                st.markdown('<div class="signal-grid">', unsafe_allow_html=True)
+                
+                cols = st.columns(3)
+                for i, (index, row) in enumerate(visible_df.iterrows()):
+                    with cols[i % 3]:
                         render_signal_card(row, index, is_ko, T, report_map)
-
-                # Pagination Controls
-                if total_pages > 1:
-                    c_pg1, c_pg2 = st.columns([1, 1])
-                    with c_pg2:
-                        c_b1, c_b2, c_b3, c_b4 = st.columns([1, 1, 3, 1])
-                        with c_b2:
-                            if st.button("<", key="prev_top", help="Previous Page"):
-                                    if st.session_state.card_page > 1:
-                                        st.session_state.card_page -= 1
-                                        st.rerun()
-                        with c_b3:
-                                st.markdown(f"<div style='text-align:center; padding-top:10px;'>{st.session_state.card_page} / {total_pages}</div>", unsafe_allow_html=True)
-                        with c_b4:
-                            if st.button(">", key="next_top", help="Next Page"):
-                                    if st.session_state.card_page < total_pages:
-                                        st.session_state.card_page += 1
-                                        st.rerun()
+                
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+                # Load More Button (Fallback for accessibility + progressive loading)
+                if items_to_show < total_items:
+                    remaining = total_items - items_to_show
+                    
+                    col1, col2, col3 = st.columns([1, 1, 1])
+                    with col2:
+                        if st.button(f"⬇️ {T.get('Load More', 'Load More')} ({remaining} {T.get('remaining', 'remaining')})", 
+                                   key="load_more_btn", 
+                                   use_container_width=True,
+                                   type="secondary"):
+                            # Load next batch (20 more cards)
+                            st.session_state.scroll_loaded_count += 20
+                            st.rerun()
+                else:
+                    # End of results indicator
+                    st.markdown(f"""
+                    <div style="text-align:center; padding:20px; color:#94A3B8; font-size:0.9rem;">
+                        ✓ {T.get('All Results Shown', 'All results shown')} ({total_items} {T.get('total', 'total')})
+                    </div>
+                    """, unsafe_allow_html=True)
         else:
             st.info(T["No Signals"])
 
