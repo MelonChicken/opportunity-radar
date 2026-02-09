@@ -190,5 +190,10 @@ AI는 단순한 트렌드가 아닌 **실질적인 스타트업 사업 기회**�
           "View_Source_Report": "View Full Report" if not is_ko else "전체 리포트 보기",
           "Publisher": "Publisher" if not is_ko else "출판사",
           "Published_Date": "Published" if not is_ko else "발행일",
+          
+          # Score Labels
+          "Score_High": "High Potential" if not is_ko else "높은 잠재력",
+          "Score_Medium": "Medium" if not is_ko else "중간",
+          "Score_Low": "Low" if not is_ko else "낮음",
      }
     return T

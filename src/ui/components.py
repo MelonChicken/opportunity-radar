@@ -35,56 +35,169 @@ def show_details_dialog(row, is_ko, T, report_map):
     left, right = st.columns([1.1, 1.9], gap="medium")
 
     with left:
-        st.markdown(f"### {T['Target_Label']}")
-        st.write(f"**{holder}**")
-        st.caption(f"Context: {context}")
+        # Calculate score-based styling
+        score = row['importance_score']
+        conf_val = int(row.get('confidence_score', 0)*100)
         
-        st.markdown(f"### {T['Pain_Label']}")
-        st.write(mechanism)
+        if score >= 80:
+            score_label = T.get('Score_High', 'High Potential')
+            score_color = '#DC2626'
+        elif score >= 60:
+            score_label = T.get('Score_Medium', 'Medium')
+            score_color = '#2563EB'
+        else:
+            score_label = T.get('Score_Low', 'Low')
+            score_color = '#64748B'
         
-        st.markdown(f"### {T['Tags']}")
-        ind_tags = ", ".join(row.get('industry_tags', []))
-        tech_tags = ", ".join(row.get('technology_tags', []))
-        st.write(f"**{T['Industry']}:** {ind_tags}")
-        st.write(f"**{T['Technology']}:** {tech_tags}")
-        
-        st.markdown(f"### {T['Score_Title']}")
-        # Split Score/Confidence (P1: 2.2)
-        sc1, sc2 = st.columns(2)
-        with sc1:
-             st.metric(label=T['Score'], value=row['importance_score'], help=T.get('Score_Tooltip', "Business Opportunity Value"))
-        with sc2:
-             conf_val = int(row.get('confidence_score', 0)*100)
-             st.metric(label=T['Confidence_Label'], value=f"{conf_val}%", help=T.get('Confidence_Tooltip', "Data Reliability"))
-             st.progress(conf_val / 100)
-        
-        # P1 Task 5: Scoring Explanation (Inline Expander)
-        with st.expander(f"ℹ️ {T.get('Score_Help_Link', 'How is this scored?')}"):
-            st.caption(T['Score_Formula_Desc'])
+        # ============ CARD 1: TARGET ============
+        with st.container(border=True):
+            # Section title with icon
+            st.markdown(f"""
+            <div style='font-size:14px; font-weight:600; color:#64748B; margin-bottom:12px;'>
+                🎯 {T['Target_Label']}
+            </div>
+            """, unsafe_allow_html=True)
             
-            # Compact Formula Visualization
-            c1, c2, c3, c4, c5 = st.columns([2, 0.5, 2, 0.5, 2])
-            with c1:
-                st.markdown(f"<div style='text-align:center; font-size:0.8rem;'>🔥<br><b>{T['Factor_Pain'].split('(')[0]}</b></div>", unsafe_allow_html=True)
-            with c2:
-                st.markdown("<div style='text-align:center; font-size:0.8rem; padding-top:10px;'>+</div>", unsafe_allow_html=True)
-            with c3:
-                 st.markdown(f"<div style='text-align:center; font-size:0.8rem;'>📈<br><b>{T['Factor_Market'].split('(')[0]}</b></div>", unsafe_allow_html=True)
-            with c4:
-                st.markdown("<div style='text-align:center; font-size:0.8rem; padding-top:10px;'>+</div>", unsafe_allow_html=True)
-            with c5:
-                 st.markdown(f"<div style='text-align:center; font-size:0.8rem;'>🛠️<br><b>{T['Factor_Feasibility'].split('(')[0]}</b></div>", unsafe_allow_html=True)
+            # Target main text (large, bold)
+            st.markdown(f"""
+            <div style='font-size:20px; font-weight:700; color:#1E293B; margin-bottom:10px; line-height:1.3;'>
+                {html.escape(holder)}
+            </div>
+            """, unsafe_allow_html=True)
             
-            st.markdown("---")
-            st.caption(f"**80-100**: {T['Bench_High_Desc']}")
+            # Context as chip
+            if context and context != "-":
+                st.markdown(f"""
+                <span style='display:inline-block; background:#EFF6FF; color:#2563EB; padding:6px 12px; 
+                             border-radius:999px; font-size:12px; font-weight:500;'>
+                    {html.escape(context)}
+                </span>
+                """, unsafe_allow_html=True)
         
-        # Recency Info (P1: 2.1)
-        if 'created_at' in row and row['created_at']:
-            st.caption(f"📅 {row['created_at']}")
+        # Vertical spacing
+        st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
         
-        # Phase 2: Potential Value Section (Compact)
-        st.markdown(f"**{T['Potential_Value_Title']}**")
+        # ============ CARD 2: PAIN POINT ============
+        with st.container(border=True):
+            st.markdown(f"""
+            <div style='border-left:4px solid #F97316; padding-left:12px;'>
+                <div style='font-size:14px; font-weight:600; color:#64748B; margin-bottom:8px;'>
+                    ⚠️ {T['Pain_Label']}
+                </div>
+                <div style='font-size:14px; line-height:1.6; color:#1E293B;'>
+                    {html.escape(mechanism)}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
         
+        # Vertical spacing
+        st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
+        
+        # ============ CARD 3: TAGS ============
+        with st.container(border=True):
+            # Section title
+            st.markdown(f"""
+            <div style='font-size:14px; font-weight:600; color:#64748B; margin-bottom:12px;'>
+                🏷 {T['Tags']}
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Industry chips (Purple)
+            st.markdown(f"<div style='font-size:12px; color:#64748B; margin-bottom:6px;'>{T['Industry']}</div>", unsafe_allow_html=True)
+            industry_tags = row.get('industry_tags', [])
+            if industry_tags:
+                chips_html = ""
+                for tag in industry_tags:
+                    chips_html += f"""
+                    <span style='display:inline-block; background:#EDE9FE; color:#7C3AED; padding:6px 10px; 
+                                 border-radius:999px; font-size:12px; font-weight:500; margin-right:6px; margin-bottom:6px;'>
+                        {html.escape(str(tag))}
+                    </span>
+                    """
+                st.markdown(f"<div style='display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;'>{chips_html}</div>", unsafe_allow_html=True)
+            else:
+                st.caption("-")
+            
+            # Technology chips (Green/Teal)
+            st.markdown(f"<div style='font-size:12px; color:#64748B; margin-bottom:6px;'>{T['Technology']}</div>", unsafe_allow_html=True)
+            tech_tags = row.get('technology_tags', [])
+            if tech_tags:
+                chips_html = ""
+                for tag in tech_tags:
+                    chips_html += f"""
+                    <span style='display:inline-block; background:#D1FAE5; color:#059669; padding:6px 10px; 
+                                 border-radius:999px; font-size:12px; font-weight:500; margin-right:6px; margin-bottom:6px;'>
+                        {html.escape(str(tag))}
+                    </span>
+                    """
+                st.markdown(f"<div style='display:flex; flex-wrap:wrap; gap:6px;'>{chips_html}</div>", unsafe_allow_html=True)
+            else:
+                st.caption("-")
+        
+        # Vertical spacing
+        st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
+        
+        # ============ CARD 4: SCORE & METRICS ============
+        with st.container(border=True):
+            # Section title
+            st.markdown(f"""
+            <div style='font-size:14px; font-weight:600; color:#64748B; margin-bottom:16px;'>
+                📊 {T['Score_Title']}
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Large score number with label
+            st.markdown(f"""
+            <div style='text-align:center; margin-bottom:16px;'>
+                <div style='font-size:48px; font-weight:700; color:{score_color}; line-height:1;'>
+                    {score}
+                </div>
+                <div style='font-size:13px; color:#64748B; margin-top:6px; font-weight:500;'>
+                    {score_label}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Confidence meter (enhanced)
+            st.markdown(f"""
+            <div style='margin-top:16px; padding-top:16px; border-top:1px solid #E2E8F0;'>
+                <div style='display:flex; justify-content:space-between; margin-bottom:6px;'>
+                    <span style='font-size:12px; color:#64748B;'>
+                        {T['Confidence_Label']} 
+                        <span style='cursor:help; color:#3B82F6;' title='{T.get("Confidence_Tooltip", "Data Reliability")}'>ⓘ</span>
+                    </span>
+                    <span style='font-size:12px; font-weight:600; color:#334155;'>{conf_val}%</span>
+                </div>
+                <div style='background:#E2E8F0; height:6px; border-radius:999px; overflow:hidden;'>
+                    <div style='background:linear-gradient(90deg, #3B82F6, #2563EB); height:100%; width:{conf_val}%; transition:width 0.3s ease;'></div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Score explanation expander (compact)
+            with st.expander(f"ℹ️ {T.get('Score_Help_Link', 'How is this scored?')}"):
+                st.caption(T['Score_Formula_Desc'])
+                
+                # Compact Formula Visualization
+                c1, c2, c3, c4, c5 = st.columns([2, 0.5, 2, 0.5, 2])
+                with c1:
+                    st.markdown(f"<div style='text-align:center; font-size:0.8rem;'>🔥<br><b>{T['Factor_Pain'].split('(')[0]}</b></div>", unsafe_allow_html=True)
+                with c2:
+                    st.markdown("<div style='text-align:center; font-size:0.8rem; padding-top:10px;'>+</div>", unsafe_allow_html=True)
+                with c3:
+                     st.markdown(f"<div style='text-align:center; font-size:0.8rem;'>📈<br><b>{T['Factor_Market'].split('(')[0]}</b></div>", unsafe_allow_html=True)
+                with c4:
+                    st.markdown("<div style='text-align:center; font-size:0.8rem; padding-top:10px;'>+</div>", unsafe_allow_html=True)
+                with c5:
+                     st.markdown(f"<div style='text-align:center; font-size:0.8rem;'>🛠️<br><b>{T['Factor_Feasibility'].split('(')[0]}</b></div>", unsafe_allow_html=True)
+                
+                st.markdown("---")
+                st.caption(f"**80-100**: {T['Bench_High_Desc']}")
+        
+        # Vertical spacing
+        st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
+        
+        # ============ VALUE METRICS (Phase 2) ============
         has_value_data = any([
             row.get('market_size'),
             row.get('value_type'),
@@ -93,47 +206,64 @@ def show_details_dialog(row, is_ko, T, report_map):
         ])
         
         if has_value_data:
-            if row.get('market_size'):
-                st.caption(f"📊 {row['market_size']}")
-            if row.get('value_type'):
-                st.caption(f"💰 {row['value_type']}")
-            if row.get('expected_impact'):
-                st.caption(f"📈 {row['expected_impact']}")
-            if row.get('timeline'):
-                st.caption(f"⏱️ {row['timeline']}")
-        else:
-            st.caption(T.get('No_Value_Data', 'Value metrics not available.'))
-        
-        #Phase 2: Enhanced Source Information
-        st.markdown("---")
-        st.markdown(f"**{T.get('Report_Title', 'Source Report')}**")
-        
-        # Publisher Badge + Date
-        st.markdown(f"""
-        <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
-            <div style="background:#EFF6FF; color:#2563EB; padding:4px 12px; border-radius:12px; font-size:0.8rem; font-weight:700;">
-                {report.source if report else "Unknown"}
-            </div>
-            <span style="color:#64748B; font-size:0.85rem;">
-                {report.published_at.strftime('%Y-%m-%d') if report else row['report_id']}
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Report Title
-        if report:
-            report_title = report.title_ko if is_ko and report.title_ko else report.title
-            st.caption(report_title)
+            with st.container(border=True):
+                st.markdown(f"""
+                <div style='font-size:14px; font-weight:600; color:#64748B; margin-bottom:12px;'>
+                    💰 {T['Potential_Value_Title']}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                if row.get('market_size'):
+                    st.markdown(f"<div style='font-size:13px; color:#475569; margin-bottom:6px;'>📊 {html.escape(str(row['market_size']))}</div>", unsafe_allow_html=True)
+                if row.get('value_type'):
+                    st.markdown(f"<div style='font-size:13px; color:#475569; margin-bottom:6px;'>💵 {html.escape(str(row['value_type']))}</div>", unsafe_allow_html=True)
+                if row.get('expected_impact'):
+                    st.markdown(f"<div style='font-size:13px; color:#475569; margin-bottom:6px;'>📈 {html.escape(str(row['expected_impact']))}</div>", unsafe_allow_html=True)
+                if row.get('timeline'):
+                    st.markdown(f"<div style='font-size:13px; color:#475569; margin-bottom:6px;'>⏱️ {html.escape(str(row['timeline']))}</div>", unsafe_allow_html=True)
             
-            # Enhanced CTA Button
-            st.link_button(
-                f"📄 {T['View_Source_Report']} →",
-                report.url,
-                use_container_width=True,
-                type="secondary"
-            )
-        else:
-            st.caption(f"{T['Report ID']}: {row['report_id']}")
+            # Vertical spacing
+            st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
+        
+        # ============ SOURCE REPORT ============
+        with st.container(border=True):
+            st.markdown(f"""
+            <div style='font-size:14px; font-weight:600; color:#64748B; margin-bottom:12px;'>
+                📄 {T.get('Report_Title', 'Source Report')}
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Publisher Badge + Date
+            st.markdown(f"""
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+                <div style="background:#EFF6FF; color:#2563EB; padding:4px 12px; border-radius:12px; font-size:0.75rem; font-weight:700;">
+                    {report.source if report else "Unknown"}
+                </div>
+                <span style="color:#64748B; font-size:0.85rem;">
+                    {report.published_at.strftime('%Y-%m-%d') if report else row['report_id']}
+                </span>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Report Title
+            if report:
+                report_title = report.title_ko if is_ko and report.title_ko else report.title
+                st.caption(report_title)
+                
+                # Enhanced CTA Button
+                st.link_button(
+                    f"📄 {T['View_Source_Report']} →",
+                    report.url,
+                    use_container_width=True,
+                    type="secondary"
+                )
+            else:
+                st.caption(f"{T['Report ID']}: {row['report_id']}")
+        
+        # Recency timestamp (at the very bottom)
+        if 'created_at' in row and row['created_at']:
+            st.caption(f"📅 {row['created_at']}")
+
 
     with right:
         st.markdown(f"### {T['Evidence_Label']}")
