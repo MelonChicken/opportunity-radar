@@ -1,40 +1,54 @@
+"""
+Reprocessing script for regenerating all opportunity cards from existing reports.
+Uses the refactored service layer and repository pattern.
+"""
 import os
+import sys
 import time
-from src.storage import load_reports, save_cards, save_reports
+import logging
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+from src.repositories import get_report_repository, get_card_repository
 from src.parsing import parse_html_content, parse_pdf_content
 from src.signal_extraction import extract_candidate_sentences
-from src.llm_service import generate_signal_struct, translate_report
+from src.llm_service import generate_signal_struct
+from src.services.translation_service import get_translation_service
 from src.models import OpportunityCard, DiscardedSignal
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "data")
-CARDS_FILE = os.path.join(DATA_DIR, "cards.json")
-DISCARDED_FILE = os.path.join(DATA_DIR, "discarded_signals.json")
 
 def reprocess_all():
-    print("Starting Reprocessing of ALL Reports...")
+    """Reprocess all reports to regenerate opportunity cards."""
+    logger.info("Starting Reprocessing of ALL Reports...")
     
-    # 1. Clear existing Cards
-    if os.path.exists(CARDS_FILE):
-        os.remove(CARDS_FILE)
-    if os.path.exists(DISCARDED_FILE):
-        os.remove(DISCARDED_FILE)
-        
-    print("Cleared old cards/discarded data.")
+    # Get repositories
+    report_repo = get_report_repository()
+    card_repo = get_card_repository()
+    translation_service = get_translation_service()
+    
+    # 1. Clear existing Cards and Discarded Signals
+    logger.info("Clearing old cards/discarded data...")
+    card_repo.save_cards([])
+    card_repo.save_discarded([])
     
     # 2. Load Reports
-    reports = load_reports()
-    print(f"Loaded {len(reports)} reports to process.")
+    reports = report_repo.find_all()
+    logger.info(f"Loaded {len(reports)} reports to process.")
     
     new_cards = []
     new_discarded = []
     
-    for i, report in enumerate(reports): 
-        print(f"[{i+1}/{len(reports)}] Processing: {report.title[:50]}...")
+    for i, report in enumerate(reports):
+        logger.info(f"[{i+1}/{len(reports)}] Processing: {report.title[:50]}...")
         
-        # [NEW] Translate Report Metadata if missing
+        # Translate Report Metadata if missing
         if not report.title_ko:
-            translate_report(report)
+            translation_service.translate_report(report)
         
         try:
             # Parse Content
@@ -44,41 +58,45 @@ def reprocess_all():
                 text = parse_html_content(report.url)
             
             if not text:
+                logger.warning(f"Failed to extract text from {report.url}")
                 continue
-                
+            
             # Extract
             candidates = extract_candidate_sentences(text)
             
             # Structuring
             opp_count = 0
             discard_count = 0
-            for candidate in candidates: # Process all candidates
+            for candidate in candidates:  # Process all candidates
                 result = generate_signal_struct(candidate, report.title, report.report_id)
                 
                 if isinstance(result, OpportunityCard):
                     new_cards.append(result)
                     opp_count += 1
-                elif hasattr(result, 'reason'): 
+                elif hasattr(result, 'reason'):
                     new_discarded.append(result)
                     discard_count += 1
             
-            print(f"  -> Extracted: {opp_count} Opportunities, {discard_count} Discarded")
-                    
-        except Exception as e:
-            print(f"  -> Error: {e}")
-                    
-        except Exception as e:
-            print(f"  -> Error: {e}")
+            logger.info(f"  -> Extracted: {opp_count} Opportunities, {discard_count} Discarded")
             
+        except Exception as e:
+            logger.error(f"  -> Error: {e}", exc_info=True)
+    
     # 3. Save
-    save_cards(new_cards)
-    print(f"Saved {len(new_cards)} new Opportunity Cards.")
+    card_repo.save_cards(new_cards)
+    logger.info(f"Saved {len(new_cards)} new Opportunity Cards.")
     
-    # [NEW] Save Updated Reports (with translations)
-    save_reports(reports)
-    print(f"Saved {len(reports)} Updated Reports (with Korean translations).")
+    # Save Updated Reports (with translations)
+    report_repo.save_all(reports)
+    logger.info(f"Saved {len(reports)} Updated Reports (with Korean translations).")
     
-    print("\nReprocessing Complete.")
+    # Save Discarded Signals
+    card_repo.save_discarded(new_discarded)
+    logger.info(f"Saved {len(new_discarded)} Discarded Signals.")
+    
+    logger.info("\nReprocessing Complete.")
+
 
 if __name__ == "__main__":
     reprocess_all()
+
