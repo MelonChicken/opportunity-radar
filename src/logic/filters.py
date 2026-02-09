@@ -2,9 +2,9 @@ import pandas as pd
 import streamlit as st
 
 @st.cache_data(ttl=60)  # Cache for 60 seconds for real-time filter performance
-def filter_dataframe(df: pd.DataFrame, search_query: str, selected_industries: list, selected_techs: list, score_range: tuple) -> pd.DataFrame:
+def filter_dataframe(df: pd.DataFrame, search_query: str, selected_industries: list, selected_techs: list, score_range: tuple, date_range: tuple = None) -> pd.DataFrame:
     """
-    Filters the cards dataframe based on search query, industries, technologies, and score range.
+    Filters the cards dataframe based on search query, industries, technologies, score, and date range.
     """
     if df.empty:
         return df
@@ -18,7 +18,8 @@ def filter_dataframe(df: pd.DataFrame, search_query: str, selected_industries: l
         # Using a list of potential columns to check safely
         search_cols = [
             'attack_vector', 'pain_mechanism', 'pain_holder',
-            'attack_vector_ko', 'pain_mechanism_ko', 'pain_holder_ko'
+            'attack_vector_ko', 'pain_mechanism_ko', 'pain_holder_ko',
+            'industry_tags', 'technology_tags' # Added tags to search scope
         ]
         
         # Create a boolean mask initialized to False
@@ -26,19 +27,23 @@ def filter_dataframe(df: pd.DataFrame, search_query: str, selected_industries: l
         
         for col in search_cols:
             if col in filtered_df.columns:
-                mask |= filtered_df[col].str.lower().str.contains(query, na=False)
+                # Handle list columns (tags) by joining them into strings first
+                if col in ['industry_tags', 'technology_tags']:
+                     mask |= filtered_df[col].apply(lambda x: query in " ".join(x).lower() if isinstance(x, list) else query in str(x).lower())
+                else:
+                     mask |= filtered_df[col].str.lower().str.contains(query, na=False)
         
         filtered_df = filtered_df[mask]
 
-    # 2. Category Filters
+    # 2. Category Filters (OR logic within category, AND logic between categories)
     if selected_industries:
-        # Assuming 'industry_tags' is a list of strings
+        # Check if ANY of the selected industries are present in the row's list
         filtered_df = filtered_df[filtered_df['industry_tags'].apply(
             lambda x: any(i in x for i in selected_industries) if isinstance(x, list) else False
         )]
         
     if selected_techs:
-        # Assuming 'technology_tags' is a list of strings
+        # Check if ANY of the selected techs are present in the row's list
         filtered_df = filtered_df[filtered_df['technology_tags'].apply(
             lambda x: any(t in x for t in selected_techs) if isinstance(x, list) else False
         )]
@@ -46,9 +51,29 @@ def filter_dataframe(df: pd.DataFrame, search_query: str, selected_industries: l
     # 3. Score Range Filter
     if score_range:
         min_s, max_s = score_range
+        if 'importance_score' in filtered_df.columns:
+            filtered_df = filtered_df[
+                (filtered_df['importance_score'] >= min_s) & 
+                (filtered_df['importance_score'] <= max_s)
+            ]
+            
+    # 4. Date Range Filter (Task 3.1)
+    if date_range and len(date_range) == 2 and 'created_at' in filtered_df.columns:
+        start_date, end_date = date_range
+        # Ensure created_at is datetime
+        if not pd.api.types.is_datetime64_any_dtype(filtered_df['created_at']):
+             try:
+                filtered_df['created_at'] = pd.to_datetime(filtered_df['created_at'])
+             except:
+                pass # Skip if conversion fails
+        
+        # Convert start/end to timestamp for comparison (normalize to midnight if needed, but simple comparison works for dates)
+        start_ts = pd.Timestamp(start_date)
+        end_ts = pd.Timestamp(end_date) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1) # Include full end day
+        
         filtered_df = filtered_df[
-            (filtered_df['importance_score'] >= min_s) & 
-            (filtered_df['importance_score'] <= max_s)
+            (filtered_df['created_at'] >= start_ts) & 
+            (filtered_df['created_at'] <= end_ts)
         ]
         
     return filtered_df
