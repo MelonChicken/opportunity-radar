@@ -39,6 +39,13 @@ class OpportunityCard(BaseModel):
     confidence_score: float
     report_id: str
     created_at: datetime = Field(default_factory=datetime.now)
+    
+    # Phase 2: Potential Value Fields
+    market_size: Optional[str] = None  # e.g., "$1-2B addressable market"
+    value_type: Optional[str] = None   # e.g., "Cost Reduction", "Revenue Growth"
+    expected_impact: Optional[str] = None  # e.g., "20-30% cost savings"
+    timeline: Optional[str] = None  # e.g., "12-18 months to market"
+
 
 class DiscardedSignal(BaseModel):
     signal_id: str

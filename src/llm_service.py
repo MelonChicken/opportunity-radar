@@ -19,6 +19,12 @@ Your goal is not to summarize, but to **deconstruct** the text into a concrete "
 3. **Pain Mechanism (Why)**: Why is this hard? (e.g., "Data is siloed", "Manual entry causes errors", "Lack of real-time visibility").
 4. **Attack Vector (How)**: Suggest a plausible product/service approach. (e.g., "Automated reconciliation agent", "IoT-based fleet dashboard").
 
+**Value Estimation** (Phase 2):
+5. **Market Size**: Estimate the addressable market in dollars or user count (e.g., "$500M-1B TAM", "~50K SMBs in the US"). Be realistic.
+6. **Value Type**: Categorize the value created (choose one: "Cost Reduction", "Revenue Growth", "Risk Mitigation", "Productivity Gain").
+7. **Expected Impact**: Quantify the potential improvement (e.g., "20-30% cost savings", "3x faster processing", "50% error reduction").
+8. **Timeline**: Estimate time to MVP/market (e.g., "6-9 months", "12-18 months"). Consider technical complexity.
+
 **Discard Criteria (Score < 50)**:
 - Vague statements ("Growth is slowing").
 - Problems solvable only by regulation/policy.
@@ -39,7 +45,11 @@ Your goal is not to summarize, but to **deconstruct** the text into a concrete "
   "industry_tags": ["..."],
   "technology_tags": ["..."],
   "importance_score": 0-100,
-  "confidence_score": 0.0-1.0
+  "confidence_score": 0.0-1.0,
+  "market_size": "...",
+  "value_type": "Cost Reduction|Revenue Growth|Risk Mitigation|Productivity Gain",
+  "expected_impact": "...",
+  "timeline": "..."
 }}
 
 If NOT a valid startup opportunity, return {{ "importance_score": 0 }}.
@@ -107,7 +117,12 @@ def generate_signal_struct(candidate_text: str, context_summary: str, report_id:
             technology_tags=data.get("technology_tags", []),
             importance_score=score,
             confidence_score=data.get("confidence_score", 0.0),
-            report_id=report_id
+            report_id=report_id,
+            # Phase 2: Value Fields
+            market_size=data.get("market_size"),
+            value_type=data.get("value_type"),
+            expected_impact=data.get("expected_impact"),
+            timeline=data.get("timeline")
         )
         
     except Exception as e:

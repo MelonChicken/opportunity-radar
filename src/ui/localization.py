@@ -168,5 +168,27 @@ AI는 단순한 트렌드가 아닌 **실질적인 스타트업 사업 기회**�
          # P2: Advanced Filters
          "Filter_Label_Score_Range": "Importance Score Range" if not is_ko else "중요도 점수 범위",
          "Filter_Apply_Button": "Apply Filters" if not is_ko else "필터 적용",
-    }
+         
+          # Phase 1: Infinite Scroll
+          "Load More": "Load More" if not is_ko else "더 보기",
+          "remaining": "remaining" if not is_ko else "개 남음",
+          "All Results Shown": "All results shown" if not is_ko else "모든 결과 표시됨",
+          "total": "total" if not is_ko else "전체",
+          "Feed Title": "Opportunity Feed" if not is_ko else "기회 피드",
+          "Actions": "Actions" if not is_ko else "작업",
+          "View Source Details": "View Source Details" if not is_ko else "소스 상세 정보",
+          
+          # Phase 2: Content Enhancement
+          "Evidence_Preview": "Evidence" if not is_ko else "근거 문장",
+          "Potential_Value_Title": "Potential Value" if not is_ko else "예상 창출 가치",
+          "Market_Size": "Market Size" if not is_ko else "시장 규모",
+          "Value_Type": "Value Type" if not is_ko else "가치 유형",
+          "Expected_Impact": "Expected Impact" if not is_ko else "예상 효과",
+          "Timeline": "Timeline to Market" if not is_ko else "시장 진입 기간",
+          "No_Value_Data": "Value metrics not available for this signal." if not is_ko else "이 신호에 대한 가치 지표가 없습니다.",
+          "Report_Title": "Report Title" if not is_ko else "리포트 제목",
+          "View_Source_Report": "View Full Report" if not is_ko else "전체 리포트 보기",
+          "Publisher": "Publisher" if not is_ko else "출판사",
+          "Published_Date": "Published" if not is_ko else "발행일",
+     }
     return T
