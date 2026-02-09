@@ -61,8 +61,10 @@ def run_pipeline(log_callback=print) -> Tuple[int, int, int]:
             candidates = extract_candidate_sentences(text)
             log_callback(f"Extracted {len(candidates)} candidates.")
             
-            # Structuring (Limit to top 5 candidates to save tokens for MVP)
-            for candidate in candidates[:5]: 
+            # Structuring
+            # Remove MVP Limit: Increased from 5 to 20 to allow deeper analysis
+            MAX_SIGNALS = 20 
+            for candidate in candidates[:MAX_SIGNALS]: 
                 result = generate_signal_struct(candidate, report.title, report.report_id)
                 if isinstance(result, OpportunityCard):
                     new_cards.append(result)

@@ -6,7 +6,8 @@ from src.signal_extraction import extract_candidate_sentences
 from src.llm_service import generate_signal_struct, translate_report
 from src.models import OpportunityCard, DiscardedSignal
 
-DATA_DIR = "c:\\Users\\osca0\\Github\\radar\\data"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, "data")
 CARDS_FILE = os.path.join(DATA_DIR, "cards.json")
 DISCARDED_FILE = os.path.join(DATA_DIR, "discarded_signals.json")
 
@@ -33,7 +34,6 @@ def reprocess_all():
         
         # [NEW] Translate Report Metadata if missing
         if not report.title_ko:
-            print("  -> Translating Report metadata...")
             translate_report(report)
         
         try:
@@ -44,22 +44,28 @@ def reprocess_all():
                 text = parse_html_content(report.url)
             
             if not text:
-                print("  -> Failed to parse text.")
                 continue
                 
             # Extract
             candidates = extract_candidate_sentences(text)
-            print(f"  -> {len(candidates)} candidates.")
             
             # Structuring
+            opp_count = 0
+            discard_count = 0
             for candidate in candidates: # Process all candidates
                 result = generate_signal_struct(candidate, report.title, report.report_id)
                 
                 if isinstance(result, OpportunityCard):
                     new_cards.append(result)
-                    print(f"  -> Opportunity: {result.attack_vector[:30]}... ({result.importance_score})")
+                    opp_count += 1
                 elif hasattr(result, 'reason'): 
                     new_discarded.append(result)
+                    discard_count += 1
+            
+            print(f"  -> Extracted: {opp_count} Opportunities, {discard_count} Discarded")
+                    
+        except Exception as e:
+            print(f"  -> Error: {e}")
                     
         except Exception as e:
             print(f"  -> Error: {e}")
