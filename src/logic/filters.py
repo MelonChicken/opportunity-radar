@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 
-@st.cache_data(ttl=60)  # Cache for 60 seconds for real-time filter performance
+
 def filter_dataframe(df: pd.DataFrame, search_query: str, selected_industries: list, selected_techs: list, score_range: tuple, date_range: tuple = None) -> pd.DataFrame:
     """
     Filters the cards dataframe based on search query, industries, technologies, score, and date range.

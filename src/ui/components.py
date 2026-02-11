@@ -214,6 +214,7 @@ def render_kpi_section(df_cards, reports, T, is_ko=False):
     
     # Calculate time since last update
     time_diff_str = "N/A"
+    exact_time_str = ""
     if not df_cards.empty and 'created_at' in df_cards.columns:
         last_update = df_cards['created_at'].max()
         if pd.notnull(last_update):
@@ -433,7 +434,7 @@ def show_network_status_dialog(is_ko, T):
         with c2:
             st.markdown("🔒 *Locked*")
 
-@st.dialog("Welcome to Research Radar", width="large")
+@st.dialog("Welcome to Opportunity Radar", width="large")
 def show_onboarding_dialog(is_ko, T):
     st.markdown(f"""
     <div style="text-align:center; margin-bottom:24px;">
