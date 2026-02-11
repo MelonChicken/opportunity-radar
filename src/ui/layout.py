@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from src.ui.components import render_kpi_section, render_signal_card, show_details_dialog, render_skeleton_card, render_active_filters
 from src.logic.filters import filter_dataframe, sort_dataframe, get_virtual_window
+from src.ui.utils import scroll_to_top
 
 def render_sidebar():
     """
@@ -97,11 +98,17 @@ def render_main_content(page, df_cards, reports, T, is_ko, all_industries, all_t
     Renders the main content of the application based on the selected page.
     """
     st.markdown("###") # Top Spacer
+    scroll_to_top()
 
     # --- VIEW: DASHBOARD ---
     if page == "Dashboard":
         # Header Area with Language Selector
         # Header Area
+        if 'feed_search' in st.session_state and st.session_state.feed_search:
+            st.session_state.feed_search = ""
+            # Don't rerun, just clear it so next time Opportunities loads it's clean?
+            # Or rerun if needed. Actually let's just clear for now.
+
         st.markdown(f"""
         <div>
             <h1 class="page-header-title">{T['Dashboard Title']}</h1>
