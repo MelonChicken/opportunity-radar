@@ -85,7 +85,7 @@ def load_dialogs_css():
     
     .prompt-text {
         margin: 0;
-        padding: 52px 28px 24px 28px;
+        padding: 20px 24px;
         background-color: var(--bg-sidebar) !important;
         color: #FFFFFF !important;
         font-family: ui-monospace, "Cascadia Code", "Consolas", monospace !important;
@@ -93,34 +93,27 @@ def load_dialogs_css():
         line-height: 1.6 !important;
         white-space: pre-wrap !important;
         word-wrap: break-word !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+        user-select: all !important;
+        cursor: text !important;
     }
     
     /* Force white text in prompt with highest specificity - but exclude header */
     div[data-testid="stDialog"] .prompt-container,
     div[data-testid="stDialog"] .prompt-container *,
     div[data-testid="stDialog"] .prompt-text,
-    div[data-testid="stDialog"] .prompt-text *,
-    div[data-testid="stDialog"] pre.prompt-text {
+    div[data-testid="stDialog"] .prompt-text * {
         color: #FFFFFF !important;
     }
-    
-    .prompt-copy-btn {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        background-color: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: #FFFFFF !important;
-        padding: 6px 10px;
-        border-radius: 6px;
-        font-size: 11px;
-        cursor: pointer;
-        transition: all 0.2s;
-        z-index: 10;
-    }
-    
-    .prompt-copy-btn:hover {
-        background-color: rgba(255, 255, 255, 0.25);
+
+    /* Specific padding for code blocks */
+    div[data-testid="stDialog"] pre.prompt-text,
+    div[data-testid="stDialog"] .prompt-container pre {
+        padding: 20px 24px !important;
+        margin: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
     
     /* Dialog Header with Score */

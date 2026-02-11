@@ -97,82 +97,16 @@ def show_details_dialog(row, is_ko, T, report_map):
         """, unsafe_allow_html=True)
         
         # ChatGPT Prompt Card - Custom Container
-        import uuid
-        button_id = f"copy_btn_{uuid.uuid4().hex[:8]}"
-        
         prompt_escaped = html.escape(prompt_text)
         st.markdown(f"""
         <div class="prompt-section">
             <div class="prompt-header">💬 {T['Prompt Title']}</div>
-            <div class="prompt-container">
-                <div role="button" tabindex="0" class="prompt-copy-btn" id="{button_id}" style="cursor:pointer; display:inline-flex; align-items:center; justify-content:center;">📋 {T.get('Copy', 'Copy')}</div>
-                <pre class="prompt-text" id="promptTextContent" style="color: #FFFFFF !important;">{prompt_escaped}</pre>
+            <div style="background-color: #0F172A; border-radius: 10px; padding: 20px;">
+                <div class="prompt-container" style="height: 140px;">
+                    <pre class="prompt-text" style="color: #FFFFFF !important; user-select: all; cursor: text; padding: 16px; margin: 0;">{prompt_escaped}</pre>
+                </div>
             </div>
         </div>
-        <script>
-        (function() {{
-            const btn = document.getElementById("{button_id}");
-            if (btn) {{
-                // Handle both click and Enter key (for accessibility)
-                function handleCopy(e) {{
-                    e.preventDefault();
-                    e.stopPropagation(); // Stop event from bubbling to Streamlit
-                    
-                    const textElement = document.getElementById("promptTextContent");
-                    if (!textElement) {{
-                         console.error("Prompt text element not found");
-                         return;
-                    }}
-                    const text = textElement.innerText;
-                    
-                    console.log("Attempting copy...");
-                    
-                    // Reliable Clipboard API
-                    if (navigator.clipboard && navigator.clipboard.writeText) {{
-                        navigator.clipboard.writeText(text).then(() => {{
-                            console.log("Clipboard API success");
-                            const original = btn.innerHTML;
-                            btn.innerHTML = '✓ Copied!';
-                            setTimeout(() => {{ btn.innerHTML = original; }}, 2000);
-                        }}).catch(err => {{
-                            console.error('Clipboard API failed', err);
-                            fallbackCopy(text);
-                        }});
-                    }} else {{
-                        console.log("Clipboard API unavailable, using fallback");
-                        fallbackCopy(text);
-                    }}
-                }}
-                
-                function fallbackCopy(text) {{
-                    try {{
-                        const ta = document.createElement("textarea");
-                        ta.value = text;
-                        ta.style.position = "fixed";
-                        ta.style.left = "-9999px";
-                        document.body.appendChild(ta);
-                        ta.select();
-                        document.execCommand("copy");
-                        document.body.removeChild(ta);
-                        
-                        const original = btn.innerHTML;
-                        btn.innerHTML = '✓ Copied!';
-                        setTimeout(() => {{ btn.innerHTML = original; }}, 2000);
-                    }} catch (err) {{
-                        console.error('Fallback failed', err);
-                        btn.innerHTML = '❌ Error';
-                    }}
-                }}
-
-                btn.addEventListener("click", handleCopy);
-                btn.addEventListener("keydown", function(e) {{
-                    if (e.key === "Enter" || e.key === " ") {{
-                        handleCopy(e);
-                    }}
-                }});
-            }}
-        }})();
-        </script>
         """, unsafe_allow_html=True)
         
         # Action Buttons
