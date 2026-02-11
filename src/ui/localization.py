@@ -1,7 +1,7 @@
 def get_translations(is_ko: bool):
     """Returns the translation dictionary based on the selected language."""
     T = {
-        "Dashboard Title": "Research Radar" if not is_ko else "리서치 레이더",
+        "Dashboard Title": "Opportunity Radar" if not is_ko else "기회 탐색기",
         "Dashboard Subtitle": "High-value startup opportunities extracted from global research." if not is_ko else "글로벌 리서치에서 추출한 핵심 스타트업 사업 기회",
         "Total Signals": "Total Signals" if not is_ko else "전체 신호",
         "Critical Signals": "Critical Signals" if not is_ko else "핵심 신호 (80+)",
@@ -37,11 +37,11 @@ def get_translations(is_ko: bool):
         "Tab_Dashboard": "Dashboard" if not is_ko else "대시보드",
         "Tab_Guide": "Methodology" if not is_ko else "방법론",
         
-        "Guide_Intro": """### How to Use Research Radar
+        "Guide_Intro": """### How to Use Opportunity Radar
 1. **Filter**: Use the sidebar to select industries or technologies of interest.
 2. **Explore**: Browse the opportunity cards. Each card represents a distinct **'Attack Vector'** (Startup Idea).
 3. **Deep Dive**: Click **'View Details'** to see the full context, who holds the pain point, and the source report link.
-""" if not is_ko else """### 리서치 레이더 사용법
+""" if not is_ko else """### 기회 탐색기 사용법
 1. **필터**: 사이드바를 사용하여 관심 있는 산업군이나 기술을 선택하세요.
 2. **탐색**: 기회 카드를 살펴보세요. 각 카드는 구체적인 **'공략 포인트'** (스타트업 아이디어)를 나타냅니다.
 3. **상세 보기**: **'상세 정보 확인'**을 클릭하여 전체 맥락, 페인 포인트의 주체, 원본 리포트 링크를 확인하세요.
@@ -101,7 +101,7 @@ AI는 단순한 트렌드가 아닌 **실질적인 스타트업 사업 기회**�
         "Bench_Mid_Label": "POTENTIAL OPPORTUNITY" if not is_ko else "잠재적 기회",
         "Bench_Mid_Desc": "Emerging trend. Requires further market education or technical innovation." if not is_ko else "떠오르는 트렌드. 추가적인 시장 교육이나 기술 혁신이 필요함.",
         "Quote Text": "\"Don't build based on intuition. Build based on verified market friction.\"" if not is_ko else "\"직감으로 짓지 말고, 검증된 시장의 마찰(Friction) 위에 지어라.\"",
-        "Quote Author": "— Research Radar Philosophy" if not is_ko else "— 리서치 레이더 철학",
+        "Quote Author": "— Opportunity Radar Philosophy" if not is_ko else "— 기회 탐색의 철학",
         "Quick Filters": "Try" if not is_ko else "추천 검색어",
         
         # P0: 2. Methodology Details

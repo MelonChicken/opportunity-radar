@@ -11,6 +11,8 @@ from .forms import load_forms_css
 from .buttons import load_buttons_css
 from .dialogs import load_dialogs_css
 from .components import load_components_css
+from .chips import load_chips_css
+from .utilities import load_utilities_css
 
 
 def load_css():
@@ -22,12 +24,14 @@ def load_css():
     """
     css_modules = [
         load_base_css(),
+        load_utilities_css(),
         load_sidebar_css(),
         load_cards_css(),
         load_forms_css(),
         load_buttons_css(),
         load_dialogs_css(),
         load_components_css(),
+        load_chips_css(),
     ]
     
     combined_css = "\n".join(css_modules)

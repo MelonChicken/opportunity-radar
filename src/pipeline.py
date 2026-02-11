@@ -1,25 +1,47 @@
+"""
+Pipeline orchestration for processing reports and generating opportunity cards.
+Coordinates RSS fetching, parsing, signal extraction, and LLM processing.
+"""
 import time
-from typing import List, Tuple
+import logging
+from typing import List, Tuple, Callable, Optional
+
 from .models import Report, OpportunityCard, IngestionStatus
 from .storage import load_reports, save_reports, save_cards, load_cards, load_discarded_signals, save_discarded_signals
 from .ingestion import fetch_rss_feed
 from .parsing import parse_html_content, parse_pdf_content
 from .signal_extraction import extract_candidate_sentences
-from .llm_service import generate_signal_struct, translate_report
+from .llm_service import generate_signal_struct
+from .services.translation_service import get_translation_service
+from .config import get_settings
 
-def run_pipeline(log_callback=print) -> Tuple[int, int, int]:
+logger = logging.getLogger(__name__)
+
+
+def run_pipeline(log_callback: Optional[Callable[[str], None]] = None) -> Tuple[int, int, int]:
     """
     Runs the full pipeline:
     1. Fetch RSS Stats
     2. Process Pending Reports
     3. Save Cards
     
-    Returns (reports_found, reports_processed, cards_created)
+    Args:
+        log_callback: Optional callback function for logging messages
+    
+    Returns:
+        Tuple of (reports_found, reports_processed, cards_created)
     """
-    # 1. Fetch
+    if log_callback is None:
+        log_callback = logger.info
+    
+    settings = get_settings()
+    translation_service = get_translation_service()
+    
+    # 1. Fetch new reports
     log_callback("Fetching RSS Feed...")
     new_reports = fetch_rss_feed()
     log_callback(f"Found {len(new_reports)} items in feed.")
+    
     all_reports = load_reports()
     
     # Merge new reports
@@ -29,10 +51,11 @@ def run_pipeline(log_callback=print) -> Tuple[int, int, int]:
         if r.report_id not in existing_ids:
             all_reports.append(r)
             added_count += 1
-            
-    save_reports(all_reports) # Save immediately so we have the list
+            logger.info(f"Added new report: {r.title[:50]}...")
     
-    # 2. Process Pending
+    save_reports(all_reports)  # Save immediately so we have the list
+    
+    # 2. Process Pending Reports
     pending_reports = [r for r in all_reports if r.ingestion_status == IngestionStatus.PENDING]
     processed_count = 0
     new_cards = []
@@ -43,56 +66,61 @@ def run_pipeline(log_callback=print) -> Tuple[int, int, int]:
             log_callback(f"Processing {report.title}...")
             
             # Translate Metadata
-            translate_report(report)
+            translation_service.translate_report(report)
             
-            # Parse
+            # Parse content
             log_callback("  -> Parsing content...")
             if report.url.lower().endswith('.pdf'):
                 text = parse_pdf_content(report.url)
             else:
                 text = parse_html_content(report.url)
-                
+            
             if not text:
+                logger.warning(f"Failed to extract text from {report.url}")
                 log_callback(f"Failed to extract text from {report.url}")
                 report.ingestion_status = IngestionStatus.FAILED
                 continue
-                
-            # Extract
-            candidates = extract_candidate_sentences(text)
-            log_callback(f"Extracted {len(candidates)} candidates.")
             
-            # Structuring
-            # Remove MVP Limit: Increased from 5 to 20 to allow deeper analysis
-            MAX_SIGNALS = 20 
-            for candidate in candidates[:MAX_SIGNALS]: 
+            # Extract candidate sentences
+            candidates = extract_candidate_sentences(text)
+            log_callback(f"  -> Extracted {len(candidates)} candidates.")
+            
+            # Structuring with LLM (use configured max signals)
+            MAX_SIGNALS = settings.max_signals_per_report
+            for candidate in candidates[:MAX_SIGNALS]:
                 result = generate_signal_struct(candidate, report.title, report.report_id)
+                
                 if isinstance(result, OpportunityCard):
                     new_cards.append(result)
-                    log_callback(f"  -> Generated Opportunity: {result.problem_summary[:30]}...")
-                elif hasattr(result, 'reason'): # Check for DiscardedSignal (isinstance check might need import)
+                    log_callback(f"  -> Generated Opportunity: {result.pain_holder[:30]}...")
+                elif hasattr(result, 'reason'):  # DiscardedSignal
                     discarded_signals.append(result)
                     log_callback(f"  -> Discarded (Score {result.importance_score})")
             
             report.ingestion_status = IngestionStatus.PROCESSED
             processed_count += 1
-            time.sleep(1) # Polite rate limiting
+            logger.info(f"Successfully processed report: {report.report_id}")
+            
+            time.sleep(1)  # Polite rate limiting
             
         except Exception as e:
+            logger.error(f"Failed to process {report.report_id}: {e}", exc_info=True)
             log_callback(f"Failed to process {report.report_id}: {e}")
-            print(f"Failed to process {report.report_id}: {e}")
             report.ingestion_status = IngestionStatus.FAILED
-            
-    # 3. Save
-    save_reports(all_reports) # Update statuses
+    
+    # 3. Save results
+    save_reports(all_reports)  # Update statuses
     
     existing_cards = load_cards()
     existing_cards.extend(new_cards)
     save_cards(existing_cards)
     
-    # Save Discarded
+    # Save Discarded Signals
     if discarded_signals:
         existing_discarded = load_discarded_signals()
         existing_discarded.extend(discarded_signals)
         save_discarded_signals(existing_discarded)
+    
+    logger.info(f"Pipeline completed: {added_count} new reports, {processed_count} processed, {len(new_cards)} cards created")
     
     return added_count, processed_count, len(new_cards)

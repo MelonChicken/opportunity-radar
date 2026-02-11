@@ -4,3 +4,8 @@ __pycache__/
 .venv
 dist/
 *.egg-info/
+.idea/modules.xml
+.idea/radar.iml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/vcs.xml
+.idea/.gitignore

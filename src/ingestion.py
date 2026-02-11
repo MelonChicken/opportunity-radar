@@ -3,9 +3,10 @@ from datetime import datetime
 from typing import List, Tuple
 from .models import Report, IngestionStatus
 from .storage import load_reports, save_reports
+from .config import get_settings
 
-# PwC Global Outlook RSS (Placeholder - using a generic one if specific one fails, but stick to the plan)
-RSS_URL = "https://feeds.feedburner.com/GlobalPressRoom" 
+# Get RSS URL from config
+RSS_URL = get_settings().rss_feed_url 
 
 def parse_date(date_str: str) -> datetime:
     try:

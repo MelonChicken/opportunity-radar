@@ -227,4 +227,89 @@ def load_cards_css():
     .filter-chip button:hover {
         opacity: 1;
     }
+    
+    /* Dashboard Section Cards */
+    .section-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 24px;
+        height: 100%;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    /* Trending Sectors */
+    .sector-item {
+        margin-bottom: 16px;
+    }
+    .sector-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 4px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    .sector-count {
+        color: var(--text-secondary);
+        margin-left: 4px;
+        font-size: 0.8rem;
+    }
+    .sector-bar-bg {
+        height: 6px;
+        width: 100%;
+        background: #F1F5F9;
+        border-radius: 3px;
+    }
+    .sector-bar-fill {
+        height: 100%;
+        background: var(--accent-primary);
+        border-radius: 3px;
+    }
+    
+    /* Framework Steps */
+    .framework-description {
+        color: var(--text-secondary);
+        margin-bottom: 24px;
+        line-height: 1.6;
+        font-size: 0.95rem;
+    }
+    .framework-steps {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        text-align: center;
+    }
+    .framework-step {
+        flex: 1;
+    }
+    .framework-icon {
+        background: #EFF6FF;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 8px auto;
+        color: var(--accent-primary);
+    }
+    .framework-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .framework-arrow {
+        padding-top: 10px;
+        color: #CBD5E1;
+    }
+    
+    /* Page Header */
+    .page-header-title {
+        font-size: 2rem;
+        margin-bottom: 8px;
+    }
+    .page-header-subtitle {
+        color: var(--text-secondary);
+        margin-bottom: 32px;
+    }
 """
