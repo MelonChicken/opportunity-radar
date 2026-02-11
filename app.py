@@ -15,7 +15,7 @@ from src.pipeline import run_pipeline
 
 # --- Page Configuration ---
 st.set_page_config(
-    page_title="Research Radar",
+    page_title="Opportunity Radar",
     page_icon="📡",
     layout="wide"
 )
