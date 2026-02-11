@@ -250,44 +250,20 @@ def render_main_content(page, df_cards, reports, T, is_ko, all_industries, all_t
         c1, c2, c3 = st.columns([3, 1, 1], gap="small")
         
         with c1:
-            # Cognitive Analysis: Chips for "Popular Searches" section (Single-line, responsive)
+            # Popular search suggestions as plain text
             q_tags = ["Fraud Detection", "Climate Risk", "Legal AI", "Supply Chain"] if not is_ko else ["사기 탐지", "기후 리스크", "법률 AI", "공급망"]
-
-            # Callbacks for bidirectional sync
-            def on_pill_change():
-                if st.session_state.filter_pills:
-                    st.session_state.feed_search = st.session_state.filter_pills
-                else:
-                    st.session_state.feed_search = ""
-
-            def on_search_change():
-                # Deselect pills if user types manually something that doesn't match
-                if st.session_state.feed_search not in q_tags:
-                    st.session_state.filter_pills = None
             
-            # Cognitive Analysis: Better Placeholder
             search_query = st.text_input("Search", 
                                        placeholder=T.get("Search_Placeholder_New", T["Search Placeholder"]), 
                                        label_visibility="collapsed", 
-                                       key="feed_search",
-                                       on_change=on_search_change)
+                                       key="feed_search")
             
-            # Use Native Streamlit Pills (v1.40+) for robust interaction
-            # Force CSS for pills in dark mode (Standardized Module)
-            from src.ui.styles.chips import load_chips_css
-            st.markdown(f"<style>{load_chips_css()}</style>", unsafe_allow_html=True)
-            
-            # Task 1.1: Rename "Try:" to "Popular Searches" and add tooltip interaction
+            tags_text = " · ".join(q_tags)
             st.markdown(f"""
-            <div class="chip-container" style="display:flex; align-items:center; gap:8px; margin-top:12px; margin-bottom:4px;">
-                <span class="chip-container-label" style="font-size:0.85rem; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">
-                    🔥 {T.get('Popular Searches', 'Popular Searches')}:
-                </span>
-                <span style="font-size:0.8rem; color:#94A3B8; cursor:help;" title="Click tags to quickly filter opportunities">ℹ️</span>
+            <div style="font-size:0.8rem; color:#94A3B8; margin-top:4px;">
+                🔥 {T.get('Popular Searches', 'Popular Searches')}: <span style="color:#64748B;">{tags_text}</span>
             </div>
             """, unsafe_allow_html=True)
-            
-            st.pills("Popular Searches", q_tags, selection_mode="single", key="filter_pills", label_visibility="collapsed", on_change=on_pill_change)
             
         with c2:
             # Sort Logic: Added Highest Score
