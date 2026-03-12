@@ -4,6 +4,10 @@
 
 Research Radar automatically monitors global research reports (e.g., PwC), uses LLMs to filter out "corporate fluff," and extracts concrete **business opportunities** and **technology gaps** relevant to startups.
 
+---
+## this project is now being refactorized from streamlit website to Vanila HTML/CSS/JS website in order to divide backend and frontend
+---
+
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://catch-opportunity.streamlit.app/)
 
 
