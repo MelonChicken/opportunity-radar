@@ -29,7 +29,7 @@ def reset_data():
         os.remove(DISCARDED_FILE)
         print(f"Deleted {DISCARDED_FILE}")
         
-    print("\nData reset complete. Please running the Ingestion Pipeline in Streamlit now.")
+    print("\nData reset complete. Run the ingestion pipeline to regenerate insights.")
 
 if __name__ == "__main__":
     reset_data()

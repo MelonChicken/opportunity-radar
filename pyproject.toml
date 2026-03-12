@@ -1,14 +1,13 @@
 [tool.poetry]
 name = "research-radar"
 version = "0.1.0"
-description = "A PwC report analysis dashboard using RSS, LLM, and Streamlit."
+description = "A report analysis pipeline using RSS and LLM."
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-streamlit = "^1.30.0"
 pandas = "^2.2.0"
 feedparser = "^6.0.11"
 beautifulsoup4 = "^4.12.3"

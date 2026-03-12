@@ -1,5 +1,4 @@
 import pandas as pd
-import streamlit as st
 
 
 def filter_dataframe(df: pd.DataFrame, search_query: str, selected_industries: list, selected_techs: list, score_range: tuple, date_range: tuple = None) -> pd.DataFrame:
@@ -132,7 +131,6 @@ def get_virtual_window(df: pd.DataFrame, scroll_index: int, window_size: int = 2
 
 def paginate_dataframe(df: pd.DataFrame, current_page: int, items_per_page: int):
     """
-    DEPRECATED: Use get_virtual_window() for infinite scroll instead.
     Returns the subset of dataframe for the current page and pagination metadata.
     """
     total_items = len(df)

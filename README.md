@@ -1,4 +1,4 @@
-# Research Radar ğŸ“¡
+# Research Radar ?“¡
 
 **AI-Powered Market Intelligence Dashboard for Startups & Developers.**
 
@@ -7,22 +7,22 @@ Research Radar automatically monitors global research reports (e.g., PwC), uses 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://catch-opportunity.streamlit.app/)
 
 
-## âœ¨ Key Features
+## ??Key Features
 
-- **ğŸ¯ Startup-Focused AI Filter**: 
+- **?¯ Startup-Focused AI Filter**: 
   - Automatically discards generic macro-economic statements (e.g., "GDP is growing").
   - **Keeps & Scores** specific pain points, unmet needs, and operational inefficiencies (e.g., "Banks struggle with unstructured data").
-- **ğŸ‡°ğŸ‡· Full Korean Language Support**:
+- **?‡°?‡· Full Korean Language Support**:
   - **Dual-Language UI**: One-click toggle between English and Korean.
   - **Content Translation**: AI automatically translates extracting signals (Summary, Evidence, Expected Value) and Report Metadata into Korean.
-- **ğŸ“Š Interactive Dashboard**:
+- **?“Š Interactive Dashboard**:
   - **Smart Filters**: Filter opportunities by Industry, Technology tag, and Importance Score.
   - **Detail View**: Click any card to see full evidence, confidence score, and source links in a modal popup.
   - **Admin View**: Inspect "Discarded Signals" to verify what the AI is filtering out.
-- **âš¡ Real-time Ingestion**: 
+- **??Real-time Ingestion**: 
   - Fetch RSS feeds, parse HTML/PDF, and generate insights on-demand.
 
-## ğŸ› ï¸ Tech Stack
+## ?› ï¸?Tech Stack
 
 ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white)
@@ -36,7 +36,7 @@ Research Radar automatically monitors global research reports (e.g., PwC), uses 
 - **Data Validation**: Pydantic
 - **Storage**: JSON (Lightweight MVP)
 
-## ğŸš€ Getting Started
+## ?? Getting Started
 
 ### 1. Installation
 
@@ -66,7 +66,7 @@ Visit `http://localhost:8501` in your browser.
 
 ---
 
-## ğŸ”„ Managing Data
+## ?”„ Managing Data
 
 ### Reprocess & Translate All Data
 If you want to re-run the AI extraction on **all** existing reports (e.g., to apply new filters or generate Korean translations for old data):
@@ -81,7 +81,7 @@ To completely wipe all ingested data and start fresh:
 python reset_data.py
 ```
 
-## ğŸ“‚ Project Structure
+## ?“‚ Project Structure
 
 - `src/`: Core logic (Ingestion, Parsing, LLM, Models).
 - `data/`: JSON storage for Reports and Opportunity Cards.
